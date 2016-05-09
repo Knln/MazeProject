@@ -30,10 +30,8 @@ public class UserInterface extends JFrame {
      * WTF is this
      */
     private static final long serialVersionUID = 1L;
-
     private static final int ROWS = 20;
     private static final int COLS = 16;
-
     private static final int RIGHT_PANEL_WIDTH = 360;
 
     private Font gameFont;
@@ -41,11 +39,12 @@ public class UserInterface extends JFrame {
     private JLabel timerLabel;
     private JLabel scoreLabel;
     private int score;
-    
+
+    private boolean isGameActive;
     private Maze maze;
     private Player player;
     private JPanel grid;
-    
+
     public UserInterface() {
         init();
     }
@@ -54,7 +53,7 @@ public class UserInterface extends JFrame {
      * Initialise this user interface (JFrame)
      */
     public void init() {
-
+        isGameActive = true;
         gameFont = new Font(Font.SANS_SERIF, Font.PLAIN, 17);
         score = 0;
 
@@ -189,7 +188,6 @@ public class UserInterface extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 grid.removeAll();
                 populateGrid(grid, ROWS, COLS);
-                
                 score = 0;
                 scoreLabel.setText("Score: " + score);
             }
@@ -220,10 +218,10 @@ public class UserInterface extends JFrame {
     private class ArrowKeyDispatcher implements KeyEventDispatcher {
         @Override
         public boolean dispatchKeyEvent(KeyEvent e) {
-            if (e.getID() == KeyEvent.KEY_PRESSED) {   // TODO: Debounce key press
+            if (isGameActive && e.getID() == KeyEvent.KEY_PRESSED) {   // TODO: Debounce key press
                 Direction d;
                 boolean arrowKeyPress = false;
-                
+
                 switch (e.getKeyCode()) {
                     case KeyEvent.VK_UP:
                         filler.setText("you pressed up");
@@ -249,12 +247,12 @@ public class UserInterface extends JFrame {
                         d = Direction.UP;
                         arrowKeyPress = false;
                 }
-                
+
                 if (arrowKeyPress) {
                     if (maze.isLegalMove(player.getRow(), player.getCol(), d)) {
                         player.move(d);
                         refreshGrid(grid, ROWS, COLS);
-                        
+
                         scoreLabel.setText("Score: " + ++score);
                     }
                 }
@@ -272,6 +270,7 @@ public class UserInterface extends JFrame {
      */
     public void populateGrid(JPanel grid, int rows, int cols) {
         grid.setLayout(new GridLayout(rows, cols));
+        isGameActive = true;
         maze = new Maze(ROWS,COLS);
         player = new Player();
         refreshGrid(grid, rows, cols);
@@ -279,41 +278,46 @@ public class UserInterface extends JFrame {
 
 
     public void refreshGrid(JPanel grid, int rows, int cols) {
-        // first remove all existing tiles
-        grid.removeAll();
-        
-        for (int row = 0; row < rows; row++) {
-            for (int col = 0; col < cols; col++) {
-                JLabel label = new JLabel();
+        if (isGameActive) {
+            // first remove all existing tiles
+            grid.removeAll();
 
-                label.setHorizontalAlignment(SwingConstants.CENTER);
-                label.setVerticalAlignment(SwingConstants.CENTER);
-                label.setOpaque(true);
-                label.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
+            for (int row = 0; row < rows; row++) {
+                for (int col = 0; col < cols; col++) {
+                    JLabel label = new JLabel();
+                    label.setHorizontalAlignment(SwingConstants.CENTER);
+                    label.setVerticalAlignment(SwingConstants.CENTER);
+                    label.setOpaque(true);
+                    label.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
 
-                if (row == player.getRow() && col == player.getCol()) {
-                    label.setBackground(Color.BLUE);
-                } else if (maze.getTileFrom(row,col).getValue() == 's') {
-                    label.setBackground(Color.RED);
-                } else if (maze.getTileFrom(row,col).getValue() == 'f') {
-                    label.setBackground(Color.GREEN);
-                } else if (maze.getTileFrom(row,col).getValue() == 'e') {
-                    label.setBackground(Color.WHITE);
-                } else if (maze.getTileFrom(row,col).getValue() == 'w') {
-                    label.setBackground(Color.DARK_GRAY);
+                    // get tile value, color label accordingly
+                    char tileValue = maze.getTileFrom(row, col).getValue();
+
+                    if (row == player.getRow() && col == player.getCol()) {
+                        label.setBackground(Color.BLUE);
+                    } else if (tileValue == 's') {
+                        label.setBackground(Color.RED);
+                    } else if (tileValue == 'f') {
+                        label.setBackground(Color.GREEN);
+                    } else if (tileValue == 'e') {
+                        label.setBackground(Color.WHITE);
+                    } else if (tileValue == 'w') {
+                        label.setBackground(Color.DARK_GRAY);
+                    }
+
+                    // check for start, finish, etc
+                    if (player.getRow() == ROWS - 1 && player.getCol() == COLS - 1) {
+                        // TODO: popup yo
+                        isGameActive = false;
+                        filler.setText("you is winrar");
+                    }
+                    grid.add(label);
                 }
-                
-                // check for start, finish, etc
-                if (player.getRow() == ROWS - 1 && player.getCol() == COLS - 1) {
-                    // TODO: popup yo
-                    filler.setText("you is winrar");
-                }
-                grid.add(label);
             }
+
+            // must be called to refresh the whole JFrame
+            revalidate();
         }
-        
-        // must be called to refresh the whole JFrame
-        revalidate();
     }
 
     public static void main(String[] args) {

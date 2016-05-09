@@ -3,6 +3,7 @@ import java.util.Random;
 /**
  * Created by brad on 9/05/16.
  */
+
 public class Maze
 {
     private Tile[][] tiles;
@@ -48,13 +49,14 @@ public class Maze
         if (row < 0 || row >= ROWS || col < 0 || col >= COLS) {
             return false;
         }
-        
+
         switch (direction) {
             case UP:
                 return !isWall(row - 1, col);
             case DOWN:
                 return !isWall(row + 1, col);
             case LEFT:
+                System.out.println(!isWall(row, col - 1));
                 return !isWall(row, col - 1);
             case RIGHT:
                 return !isWall(row, col + 1);
@@ -62,7 +64,7 @@ public class Maze
                 return false;
         }
     }
-    
+
     /**
      * Whether a specified tile is a wall
      * @param row - Row of tile to check
@@ -70,16 +72,21 @@ public class Maze
      * @return Whether it's a wall
      */
     public boolean isWall(int row, int col) {
-        if (row >= 0 && row < ROWS && col >= 0 && col < COLS) {
-            Tile t = getTileFrom(row, col);
-            // TODO could make .isWall() or isSolid() part of the tile class
-            return (t.getValue() == 'w');
+        if (row < 0 || row >= ROWS || col < 0 || col >= COLS) {
+            return true;
         }
-        
-        return false;
+
+        // TODO could make .isWall() or isSolid() part of the tile class
+        Tile t = getTileFrom(row, col);
+        return (t.getValue() == 'w');
     }
 
-
+    /**
+     * Whether a specified tile is a wall
+     * @param row - Row of tile to check
+     * @param col - Column of tile to check
+     * @return Whether it's a wall
+     */
     public Tile getTileFrom(int row, int col) {
         return tiles[row][col];
     }

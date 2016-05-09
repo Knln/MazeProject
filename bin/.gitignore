@@ -4,3 +4,7 @@
 /UserInterface$3.class
 /UserInterface$MyDispatcher.class
 /UserInterface$ArrowKeyDispatcher.class
+/Maze.class
+/Player.class
+/Tile.class
+/Direction.class

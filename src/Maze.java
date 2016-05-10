@@ -3,9 +3,7 @@ import java.util.Random;
 /**
  * Created by brad on 9/05/16.
  */
-
-public class Maze
-{
+public class Maze {
     private Tile[][] tiles;
     private int ROWS;
     private int COLS;
@@ -22,16 +20,21 @@ public class Maze
         tiles = new Tile[rows][cols];
         Random rand = new Random();
 
+        // TODO maybe border the maze with walls?
         for (int i=0; i<rows; i++) {
             for (int j=0; j<cols; j++) {
 
                 if (i == 0 && j == 0) {
+                    // start
                     tiles[i][j] = new Tile('s');
-                } else if (i == ROWS-1 && j == COLS-1) {
+                } else if (i == ROWS-1 && j == COLS - 1) {
+                    // finish
                     tiles[i][j] = new Tile('f');
                 } else if (rand.nextFloat() > 0.70) {
+                    // want 30% as walls
                     tiles[i][j] = new Tile('w');
                 } else {
+                    // and the rest as empty spaces
                     tiles[i][j] = new Tile('e');
                 }
             }
@@ -56,7 +59,6 @@ public class Maze
             case DOWN:
                 return !isWall(row + 1, col);
             case LEFT:
-                System.out.println(!isWall(row, col - 1));
                 return !isWall(row, col - 1);
             case RIGHT:
                 return !isWall(row, col + 1);
@@ -90,6 +92,5 @@ public class Maze
     public Tile getTileFrom(int row, int col) {
         return tiles[row][col];
     }
-
 
 }

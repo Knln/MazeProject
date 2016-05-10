@@ -7,8 +7,7 @@ public class Player {
     private int row;
     
     public Player() {
-        row = 0;
-        col = 0;
+        moveToStart();
     }
     
     public void move(Direction d) {
@@ -26,6 +25,11 @@ public class Player {
                 col++;
                 break;
         }
+    }
+    
+    public void moveToStart() {
+        row = 0;
+        col = 0;
     }
     
     public int getRow() {

@@ -24,6 +24,7 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
+import javax.swing.Timer;
 
 
 public class UserInterface extends JFrame {
@@ -43,8 +44,10 @@ public class UserInterface extends JFrame {
     private Font baseFont;
     private JLabel timerLabel;
     private JLabel scoreLabel;
+		private Timer timer;
     private JPanel grid;
     private JButton resetButton;
+		private long startTime;
     
     // Game fields and attributes
     private int score;
@@ -117,10 +120,11 @@ public class UserInterface extends JFrame {
         infoPanel.setAlignmentX(CENTER_ALIGNMENT);
         infoPanel.add(Box.createHorizontalGlue());
 
-        timerLabel = new JLabel("Time elapsed: 00:00.0");
+        timerLabel = new JLabel();
         timerLabel.setFont(baseFont);
         infoPanel.add(timerLabel);
         infoPanel.add(Box.createVerticalStrut(10));
+        TimeElapsed(timer, timerLabel);
 
         scoreLabel = new JLabel("Score: " + score);
         scoreLabel.setFont(baseFont);
@@ -153,6 +157,7 @@ public class UserInterface extends JFrame {
                 player.moveToStart();
                 score = 0; // TODO maybe a penalty for resetting?
                 refreshGrid(grid, ROWS, COLS);
+        				TimeElapsed(timer, timerLabel);
             }
         });
         hintResetPanel.add(resetButton);
@@ -222,6 +227,7 @@ public class UserInterface extends JFrame {
                 grid.removeAll();
                 score = 0;
                 populateGrid(grid, ROWS, COLS);
+        				TimeElapsed(timer, timerLabel);
             }
         });
 
@@ -240,6 +246,20 @@ public class UserInterface extends JFrame {
         // set the arrow key dispatcher
         KeyboardFocusManager manager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
         manager.addKeyEventDispatcher(new ArrowKeyDispatcher());
+    }
+
+    private void TimeElapsed(Timer timer, final JLabel timerLabel){
+        timer = new Timer(10, new ActionListener(){
+            public void actionPerformed(ActionEvent e){
+            	int milliseconds = ((int) System.currentTimeMillis() - (int) startTime);
+            	int seconds = milliseconds/ 1000;
+            	int minutes = seconds / 60;
+            	timerLabel.setText("Time Elapsed: "+ Integer.toString(minutes) +" m "+ Integer.toString(seconds%60) + " s " + Integer.toString(milliseconds%1000) + " ms");
+            }
+        });
+        timer.setInitialDelay(0);
+        startTime = System.currentTimeMillis();
+        timer.start();
     }
 
     /**

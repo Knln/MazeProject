@@ -441,7 +441,7 @@ public class UserInterface extends JFrame {
 
                 // TODO: if high score, show this:
                 // Allow user to write new high score
-                String name = JOptionPane.showInputDialog("You win! \nScore: " + score + "\n \n New high score! Enter your name:");
+                String name = JOptionPane.showInputDialog("You win! \nScore: " + score + "\n \nNew high score! Enter your name:");
                 writeHighScore(name, score);
 
                 // TODO: else, show this:

@@ -83,7 +83,7 @@ public class UserInterface extends JFrame {
         grid.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
         grid.setLayout(new GridLayout(ROWS, COLS));
 
-        populateGrid(ROWS, COLS);
+        populateGrid(ROWS, COLS, true);
         parent.add(grid);
 
         // 2) on the right - control panel
@@ -164,7 +164,7 @@ public class UserInterface extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 player.moveToStart();
                 score = 0; // TODO maybe a penalty for resetting?
-                populateGrid(ROWS, COLS);
+                populateGrid(ROWS, COLS, false);
                 resetTimer(timerLabel);
             }
         });
@@ -232,7 +232,7 @@ public class UserInterface extends JFrame {
         button.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                populateGrid(ROWS, COLS);
+                populateGrid(ROWS, COLS, true);
                 resetTimer(timerLabel);
             }
         });
@@ -386,15 +386,18 @@ public class UserInterface extends JFrame {
     }
 
     /**
-     * Populate the grid with a specified maze
+     * Populate the grid with tiles for a maze
      * @param rows - Number of rows in the grid
      * @param cols - Number of columns in the grid
+     * @param newMaze - Whether a new maze should be generated
      */
-    public void populateGrid(int rows, int cols) {
+    public void populateGrid(int rows, int cols, boolean newMaze) {
         grid.setLayout(new GridLayout(rows, cols));
         grid.removeAll();
         isGameActive = true;
-        maze = new Maze(ROWS,COLS);
+        if (newMaze) {
+            maze = new Maze(ROWS,COLS);
+        }
         player = new Player();
         score = 0;
 

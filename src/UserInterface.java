@@ -103,8 +103,9 @@ public class UserInterface extends JFrame {
         nameLabel.setBackground(Color.GRAY);
         nameLabel.setOpaque(true);
         nameLabel.setBorder(BorderFactory.createEtchedBorder());
+        
         rhs.add(nameLabel);
-        //rhs.add(Box.createVerticalStrut(20));
+        rhs.add(Box.createVerticalStrut(10));
 
         // panel for current game stuff
         JPanel currentGamePanel = new JPanel();
@@ -179,8 +180,8 @@ public class UserInterface extends JFrame {
         newGamePanel.setLayout(new BoxLayout(newGamePanel, BoxLayout.Y_AXIS));
         newGamePanel.setAlignmentX(CENTER_ALIGNMENT);
 
-        newGamePanel.setPreferredSize(new Dimension(RIGHT_PANEL_WIDTH, 260));
-        newGamePanel.setMaximumSize(new Dimension(RIGHT_PANEL_WIDTH, 260));
+        newGamePanel.setPreferredSize(new Dimension(RIGHT_PANEL_WIDTH, 230));
+        newGamePanel.setMaximumSize(new Dimension(RIGHT_PANEL_WIDTH, 230));
         TitledBorder newBorder = BorderFactory.createTitledBorder("New Maze");
         newBorder.setTitleFont(baseFont.deriveFont(Font.BOLD));
         newBorder.setTitleJustification(TitledBorder.CENTER);
@@ -221,7 +222,7 @@ public class UserInterface extends JFrame {
         newGamePanel.add(difficultyBox);
 
         // spacing after the difficulty section
-        newGamePanel.add(Box.createVerticalStrut(60));
+        newGamePanel.add(Box.createVerticalGlue());
 
         // button that reloads the grid
         JButton button = new JButton("New Maze");
@@ -236,7 +237,9 @@ public class UserInterface extends JFrame {
             }
         });
         newGamePanel.add(button);
+        
         rhs.add(newGamePanel);
+        rhs.add(Box.createVerticalStrut(10));
 
         // HIGH SCORES
         ////////////////////////
@@ -245,8 +248,8 @@ public class UserInterface extends JFrame {
         JPanel highScoresPanel = new JPanel();
         highScoresPanel.setLayout(new BoxLayout(highScoresPanel, BoxLayout.Y_AXIS));
         highScoresPanel.setAlignmentX(CENTER_ALIGNMENT);
-        highScoresPanel.setPreferredSize(new Dimension(RIGHT_PANEL_WIDTH, 160));
-        highScoresPanel.setMaximumSize(new Dimension(RIGHT_PANEL_WIDTH, 160));
+        highScoresPanel.setPreferredSize(new Dimension(RIGHT_PANEL_WIDTH, 170));
+        highScoresPanel.setMaximumSize(new Dimension(RIGHT_PANEL_WIDTH, 170));
         TitledBorder highScoresBorder = BorderFactory.createTitledBorder("High Scores");
         highScoresBorder.setTitleFont(baseFont.deriveFont(Font.BOLD));
         highScoresBorder.setTitleJustification(TitledBorder.CENTER);
@@ -413,13 +416,13 @@ public class UserInterface extends JFrame {
                     label.setHorizontalAlignment(SwingConstants.CENTER);
                     label.setVerticalAlignment(SwingConstants.CENTER);
                     label.setOpaque(true);
-                    label.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
+                    label.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1));
 
                     // get tile value, color label accordingly
                     char tileValue = maze.getTileFrom(row, col).getValue();
 
                     //get the correct image for a tile
-                    String icon = gridIcon(grid, rows, cols, tileValue, row, col);
+                    String icon = gridIcon(rows, cols, tileValue, row, col);
                     
                     if (icon != null) {
                         icon = "res/".concat(icon);
@@ -437,12 +440,12 @@ public class UserInterface extends JFrame {
                         label.setBackground(Color.BLUE);
                     } else {
                         switch (tileValue) {
-                            case 's':
-                            case 'f':
-                            case 'e':
+                            case Tile.START:
+                            case Tile.FINISH:
+                            case Tile.EMPTY:
                                 label.setIcon(new ImageIcon(new ImageIcon(icon).getImage().getScaledInstance(scaledWidth, scaledHeight, Image.SCALE_DEFAULT)));
                                 break;
-                            case 'w':
+                            case Tile.WALL:
                                 //label.setIcon(new ImageIcon(new ImageIcon(icon).getImage().getScaledInstance(scaledWidth, scaledHeight, Image.SCALE_DEFAULT)));
                                 label.setBackground(Color.DARK_GRAY);
                                 break;
@@ -491,7 +494,7 @@ public class UserInterface extends JFrame {
         }
     }
 
-    public String gridIcon(JPanel grid, int rows, int cols, char tileValue, int row, int col) {
+    public String gridIcon(int rows, int cols, char tileValue, int row, int col) {
         //load the proper image for a tile
 
         //Can we go in these directions from current tile?
@@ -501,124 +504,134 @@ public class UserInterface extends JFrame {
         boolean down = true;
 
         switch (tileValue) {
-            case 'w':
+            case Tile.WALL:
                 //return "blank.png";
                 //draw empty wall tile
                 return null;
-            case 's':
+            case Tile.START:
                 //Test if tiles beside the start are walls
-                if (maze.getTileFrom(row+1,col).getValue()=='w'){
+                if (maze.isWall(row + 1, col)){
                     down = false;
                 }
-                if (maze.getTileFrom(row,col+1).getValue()=='w'){
+                if (maze.isWall(row, col + 1)){
                     right = false;
                 }
     
                 //Give appropriate Tile
-                if (down==true && right==true){
+                if (down && right){
                     return "tile6_2.png";
                 }
-                if (down==true && right==false){
+                if (down && !right){
                     return "tile6_3.png";
                 }
-                if (down==false && right==true){
+                if (!down && right){
                     return "tile6.png";
                 }
-            case 'f':
-                //Test if tiles beside the start are walls
-                if (maze.getTileFrom(row-1,col).getValue()=='w'){
+                if (!down && !right) {
+                    // this should never happen - stuck at start
+                    // filler tile
+                    return "tile6.png";
+                }
+            case Tile.FINISH:
+                // Test if tiles beside the finish are walls
+                if (maze.isWall(row - 1,col)){
                     up = false;
                 }
-                if (maze.getTileFrom(row,col-1).getValue()=='w'){
+                if (maze.isWall(row, col - 1)){
                     left = false;
                 }
     
                 //Give appropriate Tile
-                if (up==true && left==true){
+                if (up && left){
                     return "tile7_3.png";
                 }
-                if (up==true && left==false){
+                if (up && !left){
                     return "tile7_2.png";
                 }
-                if (up==false && left==true){
+                if (!up && left){
                     return "tile7.png";
                 }
-            case 'e':
-                //Test tiles not on edge of maze
-                if (row!=0 && maze.getTileFrom(row-1,col).getValue()=='w'){
+                if (!up && !left) {
+                    // this should never happen - end is unreachable
+                    // filler tile
+                    return "tile7.png";
+                }
+            case Tile.EMPTY:
+                // Test tiles not on edge of maze
+                if (row != 0 && maze.isWall(row - 1, col)){
                     up = false;
                 }
-                if (row!=rows-1 && maze.getTileFrom(row+1,col).getValue()=='w'){
+                if (row != rows - 1 && maze.isWall(row + 1, col)){
                     down = false;
                 }
-                if (col!=0 && maze.getTileFrom(row,col-1).getValue()=='w'){
+                if (col != 0 && maze.isWall(row, col - 1)){
                     left = false;
                 }
-                if (col!=cols-1 && maze.getTileFrom(row,col+1).getValue()=='w'){
+                if (col != cols - 1 && maze.isWall(row, col + 1)){
                     right = false;
                 }
     
                 //Test for tiles on edge of maze
-                if (row==0) {
+                if (row == 0) {
                     up = false;
                 }
-                if (col==0) {
+                if (col == 0) {
                     left = false;
                 }
-                if (row==rows-1) {
+                if (row == rows-1) {
                     down = false;
                 }
-                if (col==cols-1) {
+                if (col == cols-1) {
                     right = false;
                 }
     
-                //Test which tile we place
-                if (left==false && right==false && up==false && down==false){
+                // Test which tile we place
+                if (!left && !right && !up && !down) {
                     return "blank_wall.png";
                 }
-                if (left==true && right==false && up==false && down==false){
+                if (left && !right && !up && !down) {
                     return "tile4.png";
                 }
-                if (left==true && right==true && up==false && down==false){
+                if (left && right && !up && !down) {
                     return "tile5.png";
                 }
-                if (left==true && right==true && up==true && down==false){
+                if (left && right && up && !down) {
                     return "tile2_2.png";
                 }
-                if (left==true && right==true && up==true && down==true){
+                if (left && right && up && down) {
                     return "tile1.png";
                 }
-                if (left==false && right==true && up==false && down==false){
+                if (!left && right && !up && !down) {
                     return "tile4_3.png";
                 }
-                if (left==false && right==true && up==true && down==false){
+                if (!left && right && up && !down) {
                     return "tile3_3.png";
                 }
-                if (left==false && right==true && up==true && down==true){
+                if (!left && right && up && down) {
                     return "tile2.png";
                 }
-                if (left==false && right==false && up==true && down==false){
+                if (!left && !right && up && !down) {
                     return "tile4_4.png";
                 }
-                if (left==false && right==false && up==true && down==true){
+                if (!left && !right && up && down) {
                     return "tile5_2.png";
                 }
-                if (left==true && right==false && up==true && down==false){
+                if (left && !right && up && !down){
                     return "tile3_4.png";
                 }
-                if (left==false && right==false && up==false && down==true){
+                if (!left && !right && !up && down){
                     return "tile4_2.png";
                 }
-                if (left==true && right==true && up==false && down==true){
+                if (left && right && !up && down){
                     return "tile2_4.png";
                 }
-                if (left==true && right==false && up==true && down==true){
+                if (left && !right && up && down){
                     return "tile2_3.png";
                 }
-                if (left==false && right==true && up==false && down==true){
+                if (!left && right && !up && down){
                     return "tile3_2.png";
                 }
-                if (left==true && right==false && up==false && down==true){
+                if (left && !right && !up && down){
                     return "tile3.png";
                 }
             default:

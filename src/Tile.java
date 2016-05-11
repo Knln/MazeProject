@@ -3,6 +3,11 @@
  */
 public class Tile
 {
+    public static final char WALL = 'w';
+    public static final char EMPTY = 'e';
+    public static final char START = 's';
+    public static final char FINISH = 'f';
+    
     char value;
 
     public Tile(char ch)

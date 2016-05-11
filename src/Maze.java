@@ -26,16 +26,16 @@ public class Maze {
 
                 if (i == 0 && j == 0) {
                     // start
-                    tiles[i][j] = new Tile('s');
+                    tiles[i][j] = new Tile(Tile.START);
                 } else if (i == ROWS-1 && j == COLS - 1) {
                     // finish
-                    tiles[i][j] = new Tile('f');
+                    tiles[i][j] = new Tile(Tile.FINISH);
                 } else if (rand.nextFloat() > 0.79) {
                     // want 30% as walls
-                    tiles[i][j] = new Tile('w');
+                    tiles[i][j] = new Tile(Tile.WALL);
                 } else {
                     // and the rest as empty spaces
-                    tiles[i][j] = new Tile('e');
+                    tiles[i][j] = new Tile(Tile.EMPTY);
                 }
             }
         }
@@ -80,7 +80,7 @@ public class Maze {
 
         // TODO could make .isWall() or isSolid() part of the tile class
         Tile t = getTileFrom(row, col);
-        return (t.getValue() == 'w');
+        return (t.getValue() == Tile.WALL);
     }
 
     /**

@@ -42,12 +42,10 @@ public class UserInterface extends JFrame {
 
     // Swing globals
     private Font baseFont;
-    private JLabel timerLabel;
     private JLabel scoreLabel;
-		private Timer timer;
     private JPanel grid;
     private JButton resetButton;
-		private long startTime;
+    private long startTime;
     
     // Game fields and attributes
     private int score;
@@ -120,11 +118,11 @@ public class UserInterface extends JFrame {
         infoPanel.setAlignmentX(CENTER_ALIGNMENT);
         infoPanel.add(Box.createHorizontalGlue());
 
-        timerLabel = new JLabel();
+        final JLabel timerLabel = new JLabel();
         timerLabel.setFont(baseFont);
         infoPanel.add(timerLabel);
         infoPanel.add(Box.createVerticalStrut(10));
-        TimeElapsed(timer, timerLabel);
+        resetTimer(timerLabel);
 
         scoreLabel = new JLabel("Score: " + score);
         scoreLabel.setFont(baseFont);
@@ -157,7 +155,7 @@ public class UserInterface extends JFrame {
                 player.moveToStart();
                 score = 0; // TODO maybe a penalty for resetting?
                 refreshGrid(grid, ROWS, COLS);
-        				TimeElapsed(timer, timerLabel);
+                resetTimer(timerLabel);
             }
         });
         hintResetPanel.add(resetButton);
@@ -224,10 +222,8 @@ public class UserInterface extends JFrame {
         button.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                grid.removeAll();
-                score = 0;
                 populateGrid(grid, ROWS, COLS);
-        				TimeElapsed(timer, timerLabel);
+                resetTimer(timerLabel);
             }
         });
 
@@ -248,13 +244,26 @@ public class UserInterface extends JFrame {
         manager.addKeyEventDispatcher(new ArrowKeyDispatcher());
     }
 
-    private void TimeElapsed(Timer timer, final JLabel timerLabel){
-        timer = new Timer(10, new ActionListener(){
+    private void resetTimer(final JLabel timerLabel){
+        final Timer timer = new Timer(40, null);
+        timer.addActionListener(new ActionListener(){
             public void actionPerformed(ActionEvent e){
-            	int milliseconds = ((int) System.currentTimeMillis() - (int) startTime);
-            	int seconds = milliseconds/ 1000;
-            	int minutes = seconds / 60;
-            	timerLabel.setText("Time Elapsed: "+ Integer.toString(minutes) +" m "+ Integer.toString(seconds%60) + " s " + Integer.toString(milliseconds%1000) + " ms");
+            	final int elapsed = (int)(System.currentTimeMillis() - startTime);
+            	
+            	// update in the UI thread
+            	SwingUtilities.invokeLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        int ms = elapsed % 1000;
+                        int seconds = (elapsed / 1000) % 60;
+                        int minutes = elapsed / 1000 / 60;
+                        timerLabel.setText("Time: " + String.format("%d:%02d.%03d", minutes, seconds, ms));
+                    }
+            	});
+            	
+            	if (!isGameActive) {
+            	    timer.stop();
+            	}
             }
         });
         timer.setInitialDelay(0);
@@ -316,9 +325,11 @@ public class UserInterface extends JFrame {
      */
     public void populateGrid(JPanel grid, int rows, int cols) {
         grid.setLayout(new GridLayout(rows, cols));
+        grid.removeAll();
         isGameActive = true;
         maze = new Maze(ROWS,COLS);
         player = new Player();
+        score = 0;
         refreshGrid(grid, rows, cols);
     }
 
@@ -386,6 +397,7 @@ public class UserInterface extends JFrame {
                 JOptionPane optionPane = new JOptionPane("You is winrar!\n\nScore: " + score,
                         JOptionPane.PLAIN_MESSAGE);
                 JDialog finishDialog = optionPane.createDialog(this, "Congratulations!");
+                finishDialog.setFont(baseFont);
                 finishDialog.setVisible(true);
             }
         }

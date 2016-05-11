@@ -83,7 +83,7 @@ public class UserInterface extends JFrame {
         grid.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
         grid.setLayout(new GridLayout(ROWS, COLS));
 
-        populateGrid(grid, ROWS, COLS);
+        populateGrid(ROWS, COLS);
         parent.add(grid);
 
         // second panel on the right
@@ -164,7 +164,7 @@ public class UserInterface extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 player.moveToStart();
                 score = 0; // TODO maybe a penalty for resetting?
-                refreshGrid(grid, ROWS, COLS);
+                populateGrid(ROWS, COLS);
                 resetTimer(timerLabel);
             }
         });
@@ -232,7 +232,7 @@ public class UserInterface extends JFrame {
         button.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                populateGrid(grid, ROWS, COLS);
+                populateGrid(ROWS, COLS);
                 resetTimer(timerLabel);
             }
         });
@@ -380,7 +380,7 @@ public class UserInterface extends JFrame {
                     if (maze.isLegalMove(player.getRow(), player.getCol(), d)) {
                         player.move(d);
                         score++;
-                        refreshGrid(grid, ROWS, COLS);
+                        refreshGrid(grid, d, player.getRow(), player.getCol() );
                     }
                 }
             }
@@ -390,70 +390,164 @@ public class UserInterface extends JFrame {
 
     /**
      * Populate the grid with a specified maze
-     * @param grid - JPanel that has a GridLayout to add stuff to
      * @param rows - Number of rows in the grid
      * @param cols - Number of columns in the grid
      */
-    public void populateGrid(JPanel grid, int rows, int cols) {
+    public void populateGrid(int rows, int cols) {
         grid.setLayout(new GridLayout(rows, cols));
         grid.removeAll();
         isGameActive = true;
         maze = new Maze(ROWS,COLS);
         player = new Player();
         score = 0;
-        refreshGrid(grid, rows, cols);
+
+        // old refreshGrid()
+
+        grid.removeAll();
+
+        for (int row = 0; row < rows; row++) {
+            for (int col = 0; col < cols; col++) {
+                JLabel label = new JLabel();
+                label.setHorizontalAlignment(SwingConstants.CENTER);
+                label.setVerticalAlignment(SwingConstants.CENTER);
+                label.setOpaque(true);
+                label.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1));
+
+                // get tile value, color label accordingly
+                char tileValue = maze.getTileFrom(row, col).getValue();
+
+                //get the correct image for a tile
+                String icon = gridIcon(rows, cols, tileValue, row, col);
+
+                if (icon != null) {
+                    icon = "res/".concat(icon);
+                }
+
+                //Use these scales for when maze is is 10x10 (maybe for easy maze?)
+                int scaledWidth = 65;
+                int scaledHeight = 69;
+
+                //Use these scales for when maze is 18x18 (maybe for medium maze?)
+                //int scaledWidth = 35;
+                //int scaledHeight = 39;
+
+                if (row == player.getRow() && col == player.getCol()) {
+                    label.setBackground(Color.BLUE);
+                } else {
+                    switch (tileValue) {
+                        case Tile.START:
+                        case Tile.FINISH:
+                        case Tile.EMPTY:
+                            label.setIcon(new ImageIcon(new ImageIcon(icon).getImage().getScaledInstance(scaledWidth, scaledHeight, Image.SCALE_DEFAULT)));
+                            break;
+                        case Tile.WALL:
+                            //label.setIcon(new ImageIcon(new ImageIcon(icon).getImage().getScaledInstance(scaledWidth, scaledHeight, Image.SCALE_DEFAULT)));
+                            label.setBackground(Color.DARK_GRAY);
+                            break;
+                    }
+                }
+                grid.add(label);
+            }
+        }
+
+        // at start - disable reset
+        if (resetButton != null) {
+            if (player.getRow() == 0 && player.getCol() == 0) {
+                resetButton.setEnabled(false);
+            } else {
+                resetButton.setEnabled(true);
+            }
+        }
+
+        if (scoreLabel != null) {
+            scoreLabel.setText("Score: " + score);
+        }
+
+        // must be called to refresh the whole JFrame
+        revalidate();
+
+        if (player.getRow() == ROWS - 1 && player.getCol() == COLS - 1) {
+            // reached the finish tile - they are finished
+            isGameActive = false;
+
+            resetButton.setEnabled(false);
+
+            // TODO: if high score, show this:
+            // Allow user to write new high score
+            String name = JOptionPane.showInputDialog("You win! \nScore: " + score + "\n \nNew high score! Enter your name:");
+            writeHighScore(name, score);
+            highScoresLabel.setText(readHighScores());
+
+            // TODO: else, show this:
+            // Show a popup telling the user they've finished the maze
+                /*JOptionPane optionPane = new JOptionPane("You is winrar!\n\nScore: " + score,
+                        JOptionPane.PLAIN_MESSAGE);
+                JDialog finishDialog = optionPane.createDialog(this, "Congratulations!");
+                finishDialog.setFont(baseFont);
+                finishDialog.setVisible(true);*/
+        }
     }
 
 
-    public void refreshGrid(JPanel grid, int rows, int cols) {
+    public void refreshGrid(JPanel grid, Direction d, int row, int col) {
         if (isGameActive) {
-            // first remove all existing tiles
-            grid.removeAll();
+            // new player pos
+            JLabel labelCurr = new JLabel();
+            labelCurr.setHorizontalAlignment(SwingConstants.CENTER);
+            labelCurr.setVerticalAlignment(SwingConstants.CENTER);
+            labelCurr.setOpaque(true);
+            labelCurr.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
 
-            for (int row = 0; row < rows; row++) {
-                for (int col = 0; col < cols; col++) {
-                    JLabel label = new JLabel();
-                    label.setHorizontalAlignment(SwingConstants.CENTER);
-                    label.setVerticalAlignment(SwingConstants.CENTER);
-                    label.setOpaque(true);
-                    label.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1));
+            grid.remove(row * COLS + col);
+            labelCurr.setBackground(Color.BLUE);
+            grid.add(labelCurr,row * COLS + col);
 
-                    // get tile value, color label accordingly
-                    char tileValue = maze.getTileFrom(row, col).getValue();
+            // player will always move to empty tile, simply set to 'e'
+            char tileValue = 'e';
 
-                    //get the correct image for a tile
-                    String icon = gridIcon(rows, cols, tileValue, row, col);
-                    
-                    if (icon != null) {
-                        icon = "res/".concat(icon);
-                    }
+            // Use these scales for when maze is is 10x10 (maybe for easy maze?)
+            int scaledWidth = 65;
+            int scaledHeight = 69;
 
-                    //Use these scales for when maze is is 10x10 (maybe for easy maze?)
-                    int scaledWidth = 65;
-                    int scaledHeight = 69;
+            // Use these scales for when maze is 18x18 (maybe for medium maze?)
+            //int scaledWidth = 35;
+            //int scaledHeight = 39;
 
-                    //Use these scales for when maze is 18x18 (maybe for medium maze?)
-                    //int scaledWidth = 35;
-                    //int scaledHeight = 39;
+            //old player pos
+            JLabel labelPrev = new JLabel();
+            labelPrev.setHorizontalAlignment(SwingConstants.CENTER);
+            labelPrev.setVerticalAlignment(SwingConstants.CENTER);
+            labelPrev.setOpaque(true);
+            labelPrev.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1));
 
-                    if (row == player.getRow() && col == player.getCol()) {
-                        label.setBackground(Color.BLUE);
-                    } else {
-                        switch (tileValue) {
-                            case Tile.START:
-                            case Tile.FINISH:
-                            case Tile.EMPTY:
-                                label.setIcon(new ImageIcon(new ImageIcon(icon).getImage().getScaledInstance(scaledWidth, scaledHeight, Image.SCALE_DEFAULT)));
-                                break;
-                            case Tile.WALL:
-                                //label.setIcon(new ImageIcon(new ImageIcon(icon).getImage().getScaledInstance(scaledWidth, scaledHeight, Image.SCALE_DEFAULT)));
-                                label.setBackground(Color.DARK_GRAY);
-                                break;
-                        }
-                    }
-                    grid.add(label);
-                }
+            String icon = null;
+            int gridPosition = 0;
+
+            switch (d) {
+                // ie "if we got to this spot by moving UP, then prev position was row+1
+                case UP:
+                    icon = gridIcon(ROWS, COLS, tileValue, row+1, col);
+                    gridPosition = (row * COLS + col) + COLS;
+                    break;
+                case DOWN:
+                    icon = gridIcon(ROWS, COLS, tileValue, row-1, col);
+                    gridPosition = (row * COLS + col) - COLS;
+                    break;
+                case LEFT:
+                    icon = gridIcon(ROWS, COLS, tileValue, row, col+1);
+                    gridPosition = (row * COLS + col) + 1;
+                    break;
+                case RIGHT:
+                    icon = gridIcon(ROWS, COLS, tileValue, row, col-1);
+                    gridPosition = (row * COLS + col) - 1;
+                    break;
+                default:
+                    break;
             }
+
+            labelPrev.setIcon(new ImageIcon(new ImageIcon(icon).getImage().getScaledInstance(scaledWidth, scaledHeight, Image.SCALE_DEFAULT)));
+            grid.remove(gridPosition);
+            grid.add(labelPrev,gridPosition);
 
             // at start - disable reset
             if (resetButton != null) {
@@ -482,14 +576,14 @@ public class UserInterface extends JFrame {
                 String name = JOptionPane.showInputDialog("You win! \nScore: " + score + "\n \nNew high score! Enter your name:");
                 writeHighScore(name, score);
                 highScoresLabel.setText(readHighScores());
-                
+
                 // TODO: else, show this:
                 // Show a popup telling the user they've finished the maze
-                /*JOptionPane optionPane = new JOptionPane("You is winrar!\n\nScore: " + score,
-                        JOptionPane.PLAIN_MESSAGE);
-                JDialog finishDialog = optionPane.createDialog(this, "Congratulations!");
-                finishDialog.setFont(baseFont);
-                finishDialog.setVisible(true);*/
+//                JOptionPane optionPane = new JOptionPane("You win!\n\nScore: " + score,
+//                        JOptionPane.PLAIN_MESSAGE);
+//                JDialog finishDialog = optionPane.createDialog(this, "Congratulations!");
+//
+//                finishDialog.setVisible(true);
             }
         }
     }

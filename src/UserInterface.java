@@ -1,14 +1,36 @@
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.GridLayout;
+import java.awt.Image;
+import java.awt.KeyEventDispatcher;
+import java.awt.KeyboardFocusManager;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.io.*;
-import java.nio.charset.StandardCharsets;
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 
-import javax.swing.*;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
+import javax.swing.Timer;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
 
@@ -28,13 +50,11 @@ public class UserInterface extends JFrame {
 
     // Swing globals
     private Font baseFont;
-    private JLabel timerLabel;
     private JLabel scoreLabel;
-		private Timer timer;
     private JPanel grid;
     private JButton resetButton;
-		private long startTime;
-
+    private long startTime;
+    
     // Game fields and attributes
     private int score;
     private boolean isGameActive;
@@ -106,13 +126,12 @@ public class UserInterface extends JFrame {
         // I have no idea how it works
         infoPanel.setAlignmentX(CENTER_ALIGNMENT);
         infoPanel.add(Box.createHorizontalGlue());
-        
-        //Timer stuff
-        timerLabel = new JLabel();
+
+        final JLabel timerLabel = new JLabel();
         timerLabel.setFont(baseFont);
         infoPanel.add(timerLabel);
         infoPanel.add(Box.createVerticalStrut(10));
-        TimeElapsed(timer, timerLabel);
+        resetTimer(timerLabel);
 
         scoreLabel = new JLabel("Score: " + score);
         scoreLabel.setFont(baseFont);
@@ -145,7 +164,7 @@ public class UserInterface extends JFrame {
                 player.moveToStart();
                 score = 0; // TODO maybe a penalty for resetting?
                 refreshGrid(grid, ROWS, COLS);
-        				TimeElapsed(timer, timerLabel);
+                resetTimer(timerLabel);
             }
         });
         hintResetPanel.add(resetButton);
@@ -212,11 +231,8 @@ public class UserInterface extends JFrame {
         button.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                grid.removeAll();
-                score = 0;
                 populateGrid(grid, ROWS, COLS);
-        		TimeElapsed(timer, timerLabel);
-
+                resetTimer(timerLabel);
             }
         });
         newGamePanel.add(button);
@@ -296,13 +312,26 @@ public class UserInterface extends JFrame {
         return scores.toString();
     }
     
-    private void TimeElapsed(Timer timer, final JLabel timerLabel){
-        timer = new Timer(10, new ActionListener(){
+    private void resetTimer(final JLabel timerLabel){
+        final Timer timer = new Timer(40, null);
+        timer.addActionListener(new ActionListener(){
             public void actionPerformed(ActionEvent e){
-            	int milliseconds = ((int) System.currentTimeMillis() - (int) startTime);
-            	int seconds = milliseconds/ 1000;
-            	int minutes = seconds / 60;
-            	timerLabel.setText("Time Elapsed: "+ Integer.toString(minutes) +" m "+ Integer.toString(seconds%60) + " s " + Integer.toString(milliseconds%1000) + " ms");
+            	final int elapsed = (int)(System.currentTimeMillis() - startTime);
+            	
+            	// update in the UI thread
+            	SwingUtilities.invokeLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        int ms = elapsed % 1000;
+                        int seconds = (elapsed / 1000) % 60;
+                        int minutes = elapsed / 1000 / 60;
+                        timerLabel.setText("Time: " + String.format("%d:%02d.%03d", minutes, seconds, ms));
+                    }
+            	});
+            	
+            	if (!isGameActive) {
+            	    timer.stop();
+            	}
             }
         });
         timer.setInitialDelay(0);
@@ -364,9 +393,11 @@ public class UserInterface extends JFrame {
      */
     public void populateGrid(JPanel grid, int rows, int cols) {
         grid.setLayout(new GridLayout(rows, cols));
+        grid.removeAll();
         isGameActive = true;
         maze = new Maze(ROWS,COLS);
         player = new Player();
+        score = 0;
         refreshGrid(grid, rows, cols);
     }
 
@@ -389,6 +420,10 @@ public class UserInterface extends JFrame {
 
                     //get the correct image for a tile
                     String icon = gridIcon(grid, rows, cols, tileValue, row, col);
+                    
+                    if (icon != null) {
+                        icon = "res/".concat(icon);
+                    }
 
                     //Use these scales for when maze is is 10x10 (maybe for easy maze?)
                     int scaledWidth = 65;
@@ -403,11 +438,7 @@ public class UserInterface extends JFrame {
                     } else {
                         switch (tileValue) {
                             case 's':
-                                label.setIcon(new ImageIcon(new ImageIcon(icon).getImage().getScaledInstance(scaledWidth, scaledHeight, Image.SCALE_DEFAULT)));
-                                 break;
                             case 'f':
-                                label.setIcon(new ImageIcon(new ImageIcon(icon).getImage().getScaledInstance(scaledWidth, scaledHeight, Image.SCALE_DEFAULT)));
-                                break;
                             case 'e':
                                 label.setIcon(new ImageIcon(new ImageIcon(icon).getImage().getScaledInstance(scaledWidth, scaledHeight, Image.SCALE_DEFAULT)));
                                 break;
@@ -451,11 +482,11 @@ public class UserInterface extends JFrame {
                 
                 // TODO: else, show this:
                 // Show a popup telling the user they've finished the maze
-//                JOptionPane optionPane = new JOptionPane("You win!\n\nScore: " + score,
-//                        JOptionPane.PLAIN_MESSAGE);
-//                JDialog finishDialog = optionPane.createDialog(this, "Congratulations!");
-//
-//                finishDialog.setVisible(true);
+                /*JOptionPane optionPane = new JOptionPane("You is winrar!\n\nScore: " + score,
+                        JOptionPane.PLAIN_MESSAGE);
+                JDialog finishDialog = optionPane.createDialog(this, "Congratulations!");
+                finishDialog.setFont(baseFont);
+                finishDialog.setVisible(true);*/
             }
         }
     }
@@ -469,136 +500,133 @@ public class UserInterface extends JFrame {
         boolean up = true;
         boolean down = true;
 
-        if (tileValue == 'w'){
-            //return "blank.png";
-            //draw empty wall tile
-            return null;
+        switch (tileValue) {
+            case 'w':
+                //return "blank.png";
+                //draw empty wall tile
+                return null;
+            case 's':
+                //Test if tiles beside the start are walls
+                if (maze.getTileFrom(row+1,col).getValue()=='w'){
+                    down = false;
+                }
+                if (maze.getTileFrom(row,col+1).getValue()=='w'){
+                    right = false;
+                }
+    
+                //Give appropriate Tile
+                if (down==true && right==true){
+                    return "tile6_2.png";
+                }
+                if (down==true && right==false){
+                    return "tile6_3.png";
+                }
+                if (down==false && right==true){
+                    return "tile6.png";
+                }
+            case 'f':
+                //Test if tiles beside the start are walls
+                if (maze.getTileFrom(row-1,col).getValue()=='w'){
+                    up = false;
+                }
+                if (maze.getTileFrom(row,col-1).getValue()=='w'){
+                    left = false;
+                }
+    
+                //Give appropriate Tile
+                if (up==true && left==true){
+                    return "tile7_3.png";
+                }
+                if (up==true && left==false){
+                    return "tile7_2.png";
+                }
+                if (up==false && left==true){
+                    return "tile7.png";
+                }
+            case 'e':
+                //Test tiles not on edge of maze
+                if (row!=0 && maze.getTileFrom(row-1,col).getValue()=='w'){
+                    up = false;
+                }
+                if (row!=rows-1 && maze.getTileFrom(row+1,col).getValue()=='w'){
+                    down = false;
+                }
+                if (col!=0 && maze.getTileFrom(row,col-1).getValue()=='w'){
+                    left = false;
+                }
+                if (col!=cols-1 && maze.getTileFrom(row,col+1).getValue()=='w'){
+                    right = false;
+                }
+    
+                //Test for tiles on edge of maze
+                if (row==0) {
+                    up = false;
+                }
+                if (col==0) {
+                    left = false;
+                }
+                if (row==rows-1) {
+                    down = false;
+                }
+                if (col==cols-1) {
+                    right = false;
+                }
+    
+                //Test which tile we place
+                if (left==false && right==false && up==false && down==false){
+                    return "blank_wall.png";
+                }
+                if (left==true && right==false && up==false && down==false){
+                    return "tile4.png";
+                }
+                if (left==true && right==true && up==false && down==false){
+                    return "tile5.png";
+                }
+                if (left==true && right==true && up==true && down==false){
+                    return "tile2_2.png";
+                }
+                if (left==true && right==true && up==true && down==true){
+                    return "tile1.png";
+                }
+                if (left==false && right==true && up==false && down==false){
+                    return "tile4_3.png";
+                }
+                if (left==false && right==true && up==true && down==false){
+                    return "tile3_3.png";
+                }
+                if (left==false && right==true && up==true && down==true){
+                    return "tile2.png";
+                }
+                if (left==false && right==false && up==true && down==false){
+                    return "tile4_4.png";
+                }
+                if (left==false && right==false && up==true && down==true){
+                    return "tile5_2.png";
+                }
+                if (left==true && right==false && up==true && down==false){
+                    return "tile3_4.png";
+                }
+                if (left==false && right==false && up==false && down==true){
+                    return "tile4_2.png";
+                }
+                if (left==true && right==true && up==false && down==true){
+                    return "tile2_4.png";
+                }
+                if (left==true && right==false && up==true && down==true){
+                    return "tile2_3.png";
+                }
+                if (left==false && right==true && up==false && down==true){
+                    return "tile3_2.png";
+                }
+                if (left==true && right==false && up==false && down==true){
+                    return "tile3.png";
+                }
+            default:
+                return null;
         }
-        if (tileValue == 's'){
-            //Test if tiles beside the start are walls
-            if (maze.getTileFrom(row+1,col).getValue()=='w'){
-                down = false;
-            }
-            if (maze.getTileFrom(row,col+1).getValue()=='w'){
-                right = false;
-            }
-
-            //Give appropriate Tile
-            if (down==true && right==true){
-                return "tile6_2.png";
-            }
-            if (down==true && right==false){
-                return "tile6_3.png";
-            }
-            if (down==false && right==true){
-                return "tile6.png";
-            }
-
-        }
-        if (tileValue == 'f'){
-            //Test if tiles beside the start are walls
-            if (maze.getTileFrom(row-1,col).getValue()=='w'){
-                up = false;
-            }
-            if (maze.getTileFrom(row,col-1).getValue()=='w'){
-                left = false;
-            }
-
-            //Give appropriate Tile
-            if (up==true && left==true){
-                return "tile7_3.png";
-            }
-            if (up==true && left==false){
-                return "tile7_2.png";
-            }
-            if (up==false && left==true){
-                return "tile7.png";
-            }
-        }
-        if (tileValue == 'e'){
-            //Test tiles not on edge of maze
-            if (row!=0 && maze.getTileFrom(row-1,col).getValue()=='w'){
-                up = false;
-            }
-            if (row!=rows-1 && maze.getTileFrom(row+1,col).getValue()=='w'){
-                down = false;
-            }
-            if (col!=0 && maze.getTileFrom(row,col-1).getValue()=='w'){
-                left = false;
-            }
-            if (col!=cols-1 && maze.getTileFrom(row,col+1).getValue()=='w'){
-                right = false;
-            }
-
-            //Test for tiles on edge of maze
-            if (row==0) {
-                up = false;
-            }
-            if (col==0) {
-                left = false;
-            }
-            if (row==rows-1) {
-                down = false;
-            }
-            if (col==cols-1) {
-                right = false;
-            }
-
-            //Test which tile we place
-            if (left==false && right==false && up==false && down==false){
-                return "blank_wall.png";
-            }
-            if (left==true && right==false && up==false && down==false){
-                return "tile4.png";
-            }
-            if (left==true && right==true && up==false && down==false){
-                return "tile5.png";
-            }
-            if (left==true && right==true && up==true && down==false){
-                return "tile2_2.png";
-            }
-            if (left==true && right==true && up==true && down==true){
-                return "tile1.png";
-            }
-            if (left==false && right==true && up==false && down==false){
-                return "tile4_3.png";
-            }
-            if (left==false && right==true && up==true && down==false){
-                return "tile3_3.png";
-            }
-            if (left==false && right==true && up==true && down==true){
-                return "tile2.png";
-            }
-            if (left==false && right==false && up==true && down==false){
-                return "tile4_4.png";
-            }
-            if (left==false && right==false && up==true && down==true){
-                return "tile5_2.png";
-            }
-            if (left==true && right==false && up==true && down==false){
-                return "tile3_4.png";
-            }
-            if (left==false && right==false && up==false && down==true){
-                return "tile4_2.png";
-            }
-            if (left==true && right==true && up==false && down==true){
-                return "tile2_4.png";
-            }
-            if (left==true && right==false && up==true && down==true){
-                return "tile2_3.png";
-            }
-            if (left==false && right==true && up==false && down==true){
-                return "tile3_2.png";
-            }
-            if (left==true && right==false && up==false && down==true){
-                return "tile3.png";
-            }
-        }
-        return null;
     }
 
     public static void main(String[] args) {
-
         // create JFrame and make it visible
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {

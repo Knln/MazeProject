@@ -419,10 +419,6 @@ public class UserInterface extends JFrame {
                 //get the correct image for a tile
                 String icon = gridIcon(rows, cols, tileValue, row, col);
 
-                if (icon != null) {
-                    icon = "res/".concat(icon);
-                }
-
                 //Use these scales for when maze is is 10x10 (maybe for easy maze?)
                 int scaledWidth = 65;
                 int scaledHeight = 69;
@@ -590,6 +586,7 @@ public class UserInterface extends JFrame {
 
     public String gridIcon(int rows, int cols, char tileValue, int row, int col) {
         //load the proper image for a tile
+        String icon = null;
 
         //Can we go in these directions from current tile?
         boolean left = true;
@@ -601,7 +598,7 @@ public class UserInterface extends JFrame {
             case Tile.WALL:
                 //return "blank.png";
                 //draw empty wall tile
-                return null;
+                break;
             case Tile.START:
                 //Test if tiles beside the start are walls
                 if (maze.isWall(row + 1, col)){
@@ -613,19 +610,20 @@ public class UserInterface extends JFrame {
     
                 //Give appropriate Tile
                 if (down && right){
-                    return "tile6_2.png";
+                    icon = "tile6_2.png";
                 }
                 if (down && !right){
-                    return "tile6_3.png";
+                    icon = "tile6_3.png";
                 }
                 if (!down && right){
-                    return "tile6.png";
+                    icon = "tile6.png";
                 }
                 if (!down && !right) {
                     // this should never happen - stuck at start
                     // filler tile
-                    return "tile6.png";
+                    icon = "tile6.png";
                 }
+                break;
             case Tile.FINISH:
                 // Test if tiles beside the finish are walls
                 if (maze.isWall(row - 1,col)){
@@ -637,19 +635,20 @@ public class UserInterface extends JFrame {
     
                 //Give appropriate Tile
                 if (up && left){
-                    return "tile7_3.png";
+                    icon = "tile7_3.png";
                 }
                 if (up && !left){
-                    return "tile7_2.png";
+                    icon = "tile7_2.png";
                 }
                 if (!up && left){
-                    return "tile7.png";
+                    icon = "tile7.png";
                 }
                 if (!up && !left) {
                     // this should never happen - end is unreachable
                     // filler tile
-                    return "tile7.png";
+                    icon = "tile7.png";
                 }
+                break;
             case Tile.EMPTY:
                 // Test tiles not on edge of maze
                 if (row != 0 && maze.isWall(row - 1, col)){
@@ -681,56 +680,62 @@ public class UserInterface extends JFrame {
     
                 // Test which tile we place
                 if (!left && !right && !up && !down) {
-                    return "blank_wall.png";
+                    icon = "blank_wall.png";
                 }
                 if (left && !right && !up && !down) {
-                    return "tile4.png";
+                    icon = "tile4.png";
                 }
                 if (left && right && !up && !down) {
-                    return "tile5.png";
+                    icon = "tile5.png";
                 }
                 if (left && right && up && !down) {
-                    return "tile2_2.png";
+                    icon = "tile2_2.png";
                 }
                 if (left && right && up && down) {
-                    return "tile1.png";
+                    icon = "tile1.png";
                 }
                 if (!left && right && !up && !down) {
-                    return "tile4_3.png";
+                    icon = "tile4_3.png";
                 }
                 if (!left && right && up && !down) {
-                    return "tile3_3.png";
+                    icon = "tile3_3.png";
                 }
                 if (!left && right && up && down) {
-                    return "tile2.png";
+                    icon = "tile2.png";
                 }
                 if (!left && !right && up && !down) {
-                    return "tile4_4.png";
+                    icon = "tile4_4.png";
                 }
                 if (!left && !right && up && down) {
-                    return "tile5_2.png";
+                    icon = "tile5_2.png";
                 }
                 if (left && !right && up && !down){
-                    return "tile3_4.png";
+                    icon = "tile3_4.png";
                 }
                 if (!left && !right && !up && down){
-                    return "tile4_2.png";
+                    icon = "tile4_2.png";
                 }
                 if (left && right && !up && down){
-                    return "tile2_4.png";
+                    icon = "tile2_4.png";
                 }
                 if (left && !right && up && down){
-                    return "tile2_3.png";
+                    icon = "tile2_3.png";
                 }
                 if (!left && right && !up && down){
-                    return "tile3_2.png";
+                    icon = "tile3_2.png";
                 }
                 if (left && !right && !up && down){
-                    return "tile3.png";
+                    icon = "tile3.png";
                 }
+                break;
             default:
-                return null;
+                break;
         }
+        // if icon exists, direct it to the res/ folder
+        if (icon != null) {
+            icon = "res/".concat(icon);
+        }
+        return icon;
     }
 
     public static void main(String[] args) {

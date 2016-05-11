@@ -1,30 +1,15 @@
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.Font;
-import java.awt.GridLayout;
-import java.awt.KeyEventDispatcher;
-import java.awt.KeyboardFocusManager;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.ButtonGroup;
-import javax.swing.JButton;
-import javax.swing.JDialog;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JRadioButton;
-import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
+import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
-import javax.swing.Timer;
 
 
 public class UserInterface extends JFrame {
@@ -33,10 +18,10 @@ public class UserInterface extends JFrame {
      * WTF is this
      */
     private static final long serialVersionUID = 1L;
-    
+
     // Game and UI constants
-    private static final int ROWS = 20;
-    private static final int COLS = 16;
+    private static final int ROWS = 10;
+    private static final int COLS = 10;
     private static final int RIGHT_PANEL_WIDTH = 320;
     private static final String GAME_NAME = "420 Maze It";
 
@@ -48,7 +33,7 @@ public class UserInterface extends JFrame {
     private JPanel grid;
     private JButton resetButton;
 		private long startTime;
-    
+
     // Game fields and attributes
     private int score;
     private boolean isGameActive;
@@ -85,7 +70,7 @@ public class UserInterface extends JFrame {
         rhs.setMaximumSize(new Dimension(RIGHT_PANEL_WIDTH, 700));
         rhs.setLayout(new BoxLayout(rhs, BoxLayout.Y_AXIS));
         rhs.setBorder(BorderFactory.createEtchedBorder());
-        
+
         // game name at the top
         JLabel nameLabel = new JLabel(GAME_NAME, SwingConstants.CENTER);
         nameLabel.setPreferredSize(new Dimension(RIGHT_PANEL_WIDTH, 80));
@@ -97,15 +82,15 @@ public class UserInterface extends JFrame {
         nameLabel.setOpaque(true);
         nameLabel.setBorder(BorderFactory.createEtchedBorder());
         rhs.add(nameLabel);
-        rhs.add(Box.createVerticalStrut(20));
+        //rhs.add(Box.createVerticalStrut(20));
 
         // panel for current game stuff
         JPanel currentGamePanel = new JPanel();
         currentGamePanel.setLayout(new BoxLayout(currentGamePanel, BoxLayout.Y_AXIS));
         currentGamePanel.setAlignmentX(CENTER_ALIGNMENT);
 
-        currentGamePanel.setPreferredSize(new Dimension(RIGHT_PANEL_WIDTH, 295));
-        currentGamePanel.setMaximumSize(new Dimension(RIGHT_PANEL_WIDTH, 295));
+        currentGamePanel.setPreferredSize(new Dimension(RIGHT_PANEL_WIDTH, 170));
+        currentGamePanel.setMaximumSize(new Dimension(RIGHT_PANEL_WIDTH, 170));
         TitledBorder currentBorder = BorderFactory.createTitledBorder("Current Maze");
         currentBorder.setTitleFont(baseFont.deriveFont(Font.BOLD));
         currentBorder.setTitleJustification(TitledBorder.CENTER);
@@ -172,8 +157,8 @@ public class UserInterface extends JFrame {
         newGamePanel.setLayout(new BoxLayout(newGamePanel, BoxLayout.Y_AXIS));
         newGamePanel.setAlignmentX(CENTER_ALIGNMENT);
 
-        newGamePanel.setPreferredSize(new Dimension(RIGHT_PANEL_WIDTH, 295));
-        newGamePanel.setMaximumSize(new Dimension(RIGHT_PANEL_WIDTH, 295));
+        newGamePanel.setPreferredSize(new Dimension(RIGHT_PANEL_WIDTH, 260));
+        newGamePanel.setMaximumSize(new Dimension(RIGHT_PANEL_WIDTH, 260));
         TitledBorder newBorder = BorderFactory.createTitledBorder("New Maze");
         newBorder.setTitleFont(baseFont.deriveFont(Font.BOLD));
         newBorder.setTitleJustification(TitledBorder.CENTER);
@@ -228,12 +213,32 @@ public class UserInterface extends JFrame {
                 score = 0;
                 populateGrid(grid, ROWS, COLS);
         				TimeElapsed(timer, timerLabel);
+
             }
         });
-
         newGamePanel.add(button);
         rhs.add(newGamePanel);
 
+        // HIGH SCORES
+        ////////////////////////
+
+        // panel for new game stuff
+        JPanel highScoresPanel = new JPanel();
+        highScoresPanel.setLayout(new BoxLayout(highScoresPanel, BoxLayout.Y_AXIS));
+        highScoresPanel.setAlignmentX(CENTER_ALIGNMENT);
+        highScoresPanel.setPreferredSize(new Dimension(RIGHT_PANEL_WIDTH, 160));
+        highScoresPanel.setMaximumSize(new Dimension(RIGHT_PANEL_WIDTH, 160));
+        TitledBorder highScoresBorder = BorderFactory.createTitledBorder("High Scores");
+        highScoresBorder.setTitleFont(baseFont.deriveFont(Font.BOLD));
+        highScoresBorder.setTitleJustification(TitledBorder.CENTER);
+        highScoresPanel.setBorder(BorderFactory.createCompoundBorder(
+                highScoresBorder, new EmptyBorder(10, 10, 10, 10)));
+        JLabel highScoresLabel = new JLabel(readHighScores());
+        highScoresLabel.setFont(baseFont);
+        highScoresPanel.add(highScoresLabel);
+        highScoresPanel.add(Box.createVerticalStrut(60));
+
+        rhs.add(highScoresPanel);
         parent.add(rhs);
 
         this.add(parent);
@@ -246,6 +251,45 @@ public class UserInterface extends JFrame {
         // set the arrow key dispatcher
         KeyboardFocusManager manager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
         manager.addKeyEventDispatcher(new ArrowKeyDispatcher());
+    }
+
+    private void writeHighScore(String name, int score) {
+        try {
+            Files.write(Paths.get("highscores.txt"), (System.lineSeparator() + score + " " + name).getBytes(), StandardOpenOption.APPEND);
+        }catch (IOException e) {
+            //exception handling
+        }
+    }
+
+    private String readHighScores() {
+        String fileName = "highscores.txt";
+        StringBuilder scores = new StringBuilder();
+        String line;
+        int count = 0;
+
+        try {
+            FileReader fileReader = new FileReader(fileName);
+            BufferedReader bufferedReader = new BufferedReader(fileReader);
+
+            scores.append("<html>");
+            while((line = bufferedReader.readLine()) != null) {
+                scores.append(line + "<br>" );
+                count++;
+                if (count > 4) {
+                    break;
+                }
+            }
+            scores.append("</html>");
+
+            bufferedReader.close();
+        }
+        catch(FileNotFoundException e) {
+            System.out.println("Unable to open file '" + fileName + "'");
+        }
+        catch(IOException e) {
+            System.out.println("Error reading file '" + fileName + "'");
+        }
+        return scores.toString();
     }
 
     private void TimeElapsed(Timer timer, final JLabel timerLabel){
@@ -339,20 +383,32 @@ public class UserInterface extends JFrame {
                     // get tile value, color label accordingly
                     char tileValue = maze.getTileFrom(row, col).getValue();
 
+                    //get the correct image for a tile
+                    String icon = gridIcon(grid, rows, cols, tileValue, row, col);
+
+                    //Use these scales for when maze is is 10x10 (maybe for easy maze?)
+                    int scaledWidth = 65;
+                    int scaledHeight = 69;
+
+                    //Use these scales for when maze is 18x18 (maybe for medium maze?)
+                    //int scaledWidth = 35;
+                    //int scaledHeight = 39;
+
                     if (row == player.getRow() && col == player.getCol()) {
                         label.setBackground(Color.BLUE);
                     } else {
                         switch (tileValue) {
                             case 's':
-                                label.setBackground(Color.RED);
-                                break;
+                                label.setIcon(new ImageIcon(new ImageIcon(icon).getImage().getScaledInstance(scaledWidth, scaledHeight, Image.SCALE_DEFAULT)));
+                                 break;
                             case 'f':
-                                label.setBackground(Color.GREEN);
+                                label.setIcon(new ImageIcon(new ImageIcon(icon).getImage().getScaledInstance(scaledWidth, scaledHeight, Image.SCALE_DEFAULT)));
                                 break;
                             case 'e':
-                                label.setBackground(Color.WHITE);
+                                label.setIcon(new ImageIcon(new ImageIcon(icon).getImage().getScaledInstance(scaledWidth, scaledHeight, Image.SCALE_DEFAULT)));
                                 break;
                             case 'w':
+                                //label.setIcon(new ImageIcon(new ImageIcon(icon).getImage().getScaledInstance(scaledWidth, scaledHeight, Image.SCALE_DEFAULT)));
                                 label.setBackground(Color.DARK_GRAY);
                                 break;
                         }
@@ -360,7 +416,7 @@ public class UserInterface extends JFrame {
                     grid.add(label);
                 }
             }
-            
+
             // at start - disable reset
             if (resetButton != null) {
                 if (player.getRow() == 0 && player.getCol() == 0) {
@@ -369,29 +425,175 @@ public class UserInterface extends JFrame {
                     resetButton.setEnabled(true);
                 }
             }
-            
+
             if (scoreLabel != null) {
                 scoreLabel.setText("Score: " + score);
             }
 
             // must be called to refresh the whole JFrame
             revalidate();
-            
+
             if (player.getRow() == ROWS - 1 && player.getCol() == COLS - 1) {
                 // reached the finish tile - they are finished
                 isGameActive = false;
+
                 resetButton.setEnabled(false);
-                
+
+                // TODO: if high score, show this:
+                // Allow user to write new high score
+                String name = JOptionPane.showInputDialog("You win! \nScore: " + score + "\n \n New high score! Enter your name:");
+                writeHighScore(name, score);
+
+                // TODO: else, show this:
                 // Show a popup telling the user they've finished the maze
-                JOptionPane optionPane = new JOptionPane("You is winrar!\n\nScore: " + score,
-                        JOptionPane.PLAIN_MESSAGE);
-                JDialog finishDialog = optionPane.createDialog(this, "Congratulations!");
-                finishDialog.setVisible(true);
+//                JOptionPane optionPane = new JOptionPane("You win!\n\nScore: " + score,
+//                        JOptionPane.PLAIN_MESSAGE);
+//                JDialog finishDialog = optionPane.createDialog(this, "Congratulations!");
+//
+//                finishDialog.setVisible(true);
             }
         }
     }
 
+    public String gridIcon(JPanel grid, int rows, int cols, char tileValue, int row, int col) {
+        //load the proper image for a tile
+
+        //Can we go in these directions from current tile?
+        boolean left = true;
+        boolean right = true;
+        boolean up = true;
+        boolean down = true;
+
+        if (tileValue == 'w'){
+            //return "blank.png";
+            //draw empty wall tile
+            return null;
+        }
+        if (tileValue == 's'){
+            //Test if tiles beside the start are walls
+            if (maze.getTileFrom(row+1,col).getValue()=='w'){
+                down = false;
+            }
+            if (maze.getTileFrom(row,col+1).getValue()=='w'){
+                right = false;
+            }
+
+            //Give appropriate Tile
+            if (down==true && right==true){
+                return "tile6_2.png";
+            }
+            if (down==true && right==false){
+                return "tile6_3.png";
+            }
+            if (down==false && right==true){
+                return "tile6.png";
+            }
+
+        }
+        if (tileValue == 'f'){
+            //Test if tiles beside the start are walls
+            if (maze.getTileFrom(row-1,col).getValue()=='w'){
+                up = false;
+            }
+            if (maze.getTileFrom(row,col-1).getValue()=='w'){
+                left = false;
+            }
+
+            //Give appropriate Tile
+            if (up==true && left==true){
+                return "tile7_3.png";
+            }
+            if (up==true && left==false){
+                return "tile7_2.png";
+            }
+            if (up==false && left==true){
+                return "tile7.png";
+            }
+        }
+        if (tileValue == 'e'){
+            //Test tiles not on edge of maze
+            if (row!=0 && maze.getTileFrom(row-1,col).getValue()=='w'){
+                up = false;
+            }
+            if (row!=rows-1 && maze.getTileFrom(row+1,col).getValue()=='w'){
+                down = false;
+            }
+            if (col!=0 && maze.getTileFrom(row,col-1).getValue()=='w'){
+                left = false;
+            }
+            if (col!=cols-1 && maze.getTileFrom(row,col+1).getValue()=='w'){
+                right = false;
+            }
+
+            //Test for tiles on edge of maze
+            if (row==0) {
+                up = false;
+            }
+            if (col==0) {
+                left = false;
+            }
+            if (row==rows-1) {
+                down = false;
+            }
+            if (col==cols-1) {
+                right = false;
+            }
+
+            //Test which tile we place
+            if (left==false && right==false && up==false && down==false){
+                return "blank_wall.png";
+            }
+            if (left==true && right==false && up==false && down==false){
+                return "tile4.png";
+            }
+            if (left==true && right==true && up==false && down==false){
+                return "tile5.png";
+            }
+            if (left==true && right==true && up==true && down==false){
+                return "tile2_2.png";
+            }
+            if (left==true && right==true && up==true && down==true){
+                return "tile1.png";
+            }
+            if (left==false && right==true && up==false && down==false){
+                return "tile4_3.png";
+            }
+            if (left==false && right==true && up==true && down==false){
+                return "tile3_3.png";
+            }
+            if (left==false && right==true && up==true && down==true){
+                return "tile2.png";
+            }
+            if (left==false && right==false && up==true && down==false){
+                return "tile4_4.png";
+            }
+            if (left==false && right==false && up==true && down==true){
+                return "tile5_2.png";
+            }
+            if (left==true && right==false && up==true && down==false){
+                return "tile3_4.png";
+            }
+            if (left==false && right==false && up==false && down==true){
+                return "tile4_2.png";
+            }
+            if (left==true && right==true && up==false && down==true){
+                return "tile2_4.png";
+            }
+            if (left==true && right==false && up==true && down==true){
+                return "tile2_3.png";
+            }
+            if (left==false && right==true && up==false && down==true){
+                return "tile3_2.png";
+            }
+            if (left==true && right==false && up==false && down==true){
+                return "tile3.png";
+            }
+        }
+        return null;
+    }
+
     public static void main(String[] args) {
+
         // create JFrame and make it visible
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {

@@ -30,7 +30,7 @@ public class Maze {
                 } else if (i == ROWS-1 && j == COLS - 1) {
                     // finish
                     tiles[i][j] = new Tile('f');
-                } else if (rand.nextFloat() > 0.70) {
+                } else if (rand.nextFloat() > 0.79) {
                     // want 30% as walls
                     tiles[i][j] = new Tile('w');
                 } else {

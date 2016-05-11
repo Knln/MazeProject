@@ -3,6 +3,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
@@ -104,7 +105,8 @@ public class UserInterface extends JFrame {
         // I have no idea how it works
         infoPanel.setAlignmentX(CENTER_ALIGNMENT);
         infoPanel.add(Box.createHorizontalGlue());
-
+        
+        //Timer stuff
         timerLabel = new JLabel();
         timerLabel.setFont(baseFont);
         infoPanel.add(timerLabel);
@@ -212,7 +214,7 @@ public class UserInterface extends JFrame {
                 grid.removeAll();
                 score = 0;
                 populateGrid(grid, ROWS, COLS);
-        				TimeElapsed(timer, timerLabel);
+        		TimeElapsed(timer, timerLabel);
 
             }
         });
@@ -255,7 +257,7 @@ public class UserInterface extends JFrame {
 
     private void writeHighScore(String name, int score) {
         try {
-            Files.write(Paths.get("highscores.txt"), (System.lineSeparator() + score + " " + name).getBytes(), StandardOpenOption.APPEND);
+            Files.write(Paths.get("highscores.txt"), (System.lineSeparator() + score + " " + name).getBytes(), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
         }catch (IOException e) {
             //exception handling
         }
@@ -291,7 +293,7 @@ public class UserInterface extends JFrame {
         }
         return scores.toString();
     }
-
+    
     private void TimeElapsed(Timer timer, final JLabel timerLabel){
         timer = new Timer(10, new ActionListener(){
             public void actionPerformed(ActionEvent e){

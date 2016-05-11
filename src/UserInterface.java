@@ -40,6 +40,7 @@ public class UserInterface extends JFrame {
     private boolean isGameActive;
     private Maze maze;
     private Player player;
+    private JLabel highScoresLabel;
 
     public UserInterface() {
         init();
@@ -235,11 +236,12 @@ public class UserInterface extends JFrame {
         highScoresBorder.setTitleJustification(TitledBorder.CENTER);
         highScoresPanel.setBorder(BorderFactory.createCompoundBorder(
                 highScoresBorder, new EmptyBorder(10, 10, 10, 10)));
-        JLabel highScoresLabel = new JLabel(readHighScores());
+        highScoresLabel = new JLabel();
         highScoresLabel.setFont(baseFont);
         highScoresPanel.add(highScoresLabel);
         highScoresPanel.add(Box.createVerticalStrut(60));
-
+        highScoresLabel.setText(readHighScores());
+        
         rhs.add(highScoresPanel);
         parent.add(rhs);
 
@@ -445,7 +447,8 @@ public class UserInterface extends JFrame {
                 // Allow user to write new high score
                 String name = JOptionPane.showInputDialog("You win! \nScore: " + score + "\n \nNew high score! Enter your name:");
                 writeHighScore(name, score);
-
+                highScoresLabel.setText(readHighScores());
+                
                 // TODO: else, show this:
                 // Show a popup telling the user they've finished the maze
 //                JOptionPane optionPane = new JOptionPane("You win!\n\nScore: " + score,

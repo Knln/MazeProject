@@ -78,7 +78,7 @@ public class UserInterface extends JFrame {
         JPanel parent = new JPanel();
         parent.setLayout(new BoxLayout(parent, BoxLayout.X_AXIS));
 
-        // first panel - a grid to hold the maze
+        // 1) on the left - a grid to hold the maze
         grid = new JPanel();
         grid.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
         grid.setLayout(new GridLayout(ROWS, COLS));
@@ -86,14 +86,14 @@ public class UserInterface extends JFrame {
         populateGrid(ROWS, COLS);
         parent.add(grid);
 
-        // second panel on the right
+        // 2) on the right - control panel
         JPanel rhs = new JPanel();
         rhs.setPreferredSize(new Dimension(RIGHT_PANEL_WIDTH, 700));
         rhs.setMaximumSize(new Dimension(RIGHT_PANEL_WIDTH, 700));
         rhs.setLayout(new BoxLayout(rhs, BoxLayout.Y_AXIS));
         rhs.setBorder(BorderFactory.createEtchedBorder());
 
-        // game name at the top
+        // ====== GAME NAME ======
         JLabel nameLabel = new JLabel(GAME_NAME, SwingConstants.CENTER);
         nameLabel.setPreferredSize(new Dimension(RIGHT_PANEL_WIDTH, 80));
         nameLabel.setMaximumSize(new Dimension(RIGHT_PANEL_WIDTH, 80));
@@ -107,7 +107,7 @@ public class UserInterface extends JFrame {
         rhs.add(nameLabel);
         rhs.add(Box.createVerticalStrut(10));
 
-        // panel for current game stuff
+        // ====== CURRENT GAME ======
         JPanel currentGamePanel = new JPanel();
         currentGamePanel.setLayout(new BoxLayout(currentGamePanel, BoxLayout.Y_AXIS));
         currentGamePanel.setAlignmentX(CENTER_ALIGNMENT);
@@ -175,7 +175,7 @@ public class UserInterface extends JFrame {
         rhs.add(currentGamePanel);
         rhs.add(Box.createVerticalStrut(10));
 
-        // panel for new game stuff
+        // ====== NEW GAME STUFF ======
         JPanel newGamePanel = new JPanel();
         newGamePanel.setLayout(new BoxLayout(newGamePanel, BoxLayout.Y_AXIS));
         newGamePanel.setAlignmentX(CENTER_ALIGNMENT);
@@ -241,10 +241,7 @@ public class UserInterface extends JFrame {
         rhs.add(newGamePanel);
         rhs.add(Box.createVerticalStrut(10));
 
-        // HIGH SCORES
-        ////////////////////////
-
-        // panel for new game stuff
+        // ====== HIGH SCORES ======
         JPanel highScoresPanel = new JPanel();
         highScoresPanel.setLayout(new BoxLayout(highScoresPanel, BoxLayout.Y_AXIS));
         highScoresPanel.setAlignmentX(CENTER_ALIGNMENT);
@@ -257,11 +254,11 @@ public class UserInterface extends JFrame {
                 highScoresBorder, new EmptyBorder(10, 10, 10, 10)));
         highScoresLabel = new JLabel();
         highScoresLabel.setFont(baseFont);
-        highScoresPanel.add(highScoresLabel);
-        highScoresPanel.add(Box.createVerticalStrut(60));
         highScoresLabel.setText(readHighScores());
+        highScoresPanel.add(highScoresLabel);
         
         rhs.add(highScoresPanel);
+        
         parent.add(rhs);
 
         this.add(parent);
@@ -417,7 +414,7 @@ public class UserInterface extends JFrame {
                 char tileValue = maze.getTileFrom(row, col).getValue();
 
                 //get the correct image for a tile
-                String icon = gridIcon(rows, cols, tileValue, row, col);
+                String icon = gridIcon(rows, cols, row, col);
 
                 //Use these scales for when maze is is 10x10 (maybe for easy maze?)
                 int scaledWidth = 65;
@@ -498,9 +495,6 @@ public class UserInterface extends JFrame {
             labelCurr.setBackground(Color.BLUE);
             grid.add(labelCurr,row * COLS + col);
 
-            // player will always move to empty tile, simply set to 'e'
-            char tileValue = 'e';
-
             // Use these scales for when maze is is 10x10 (maybe for easy maze?)
             int scaledWidth = 65;
             int scaledHeight = 69;
@@ -522,19 +516,19 @@ public class UserInterface extends JFrame {
             switch (d) {
                 // ie "if we got to this spot by moving UP, then prev position was row+1
                 case UP:
-                    icon = gridIcon(ROWS, COLS, tileValue, row+1, col);
+                    icon = gridIcon(ROWS, COLS, row+1, col);
                     gridPosition = (row * COLS + col) + COLS;
                     break;
                 case DOWN:
-                    icon = gridIcon(ROWS, COLS, tileValue, row-1, col);
+                    icon = gridIcon(ROWS, COLS, row-1, col);
                     gridPosition = (row * COLS + col) - COLS;
                     break;
                 case LEFT:
-                    icon = gridIcon(ROWS, COLS, tileValue, row, col+1);
+                    icon = gridIcon(ROWS, COLS, row, col+1);
                     gridPosition = (row * COLS + col) + 1;
                     break;
                 case RIGHT:
-                    icon = gridIcon(ROWS, COLS, tileValue, row, col-1);
+                    icon = gridIcon(ROWS, COLS, row, col-1);
                     gridPosition = (row * COLS + col) - 1;
                     break;
                 default:
@@ -584,9 +578,10 @@ public class UserInterface extends JFrame {
         }
     }
 
-    public String gridIcon(int rows, int cols, char tileValue, int row, int col) {
+    public String gridIcon(int rows, int cols, int row, int col) {
         //load the proper image for a tile
         String icon = null;
+        char tileValue = maze.getTileFrom(row, col).getValue();
 
         //Can we go in these directions from current tile?
         boolean left = true;

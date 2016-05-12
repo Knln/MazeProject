@@ -6,11 +6,20 @@ public class Player {
     private int col;
     private int row;
     
+    private int prevCol;
+    private int prevRow;
+    
     public Player() {
         moveToStart();
+        
+        prevCol = 0;
+        prevRow = 0;
     }
     
     public void move(Direction d) {
+        prevCol = col;
+        prevRow = row;
+        
         switch (d) {
             case UP:
                 row--;
@@ -38,6 +47,14 @@ public class Player {
 
     public int getCol() {
         return col;
+    }
+
+    public int getPrevCol() {
+        return prevCol;
+    }
+
+    public int getPrevRow() {
+        return prevRow;
     }
 
 }

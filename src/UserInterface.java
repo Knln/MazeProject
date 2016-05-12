@@ -43,10 +43,16 @@ public class UserInterface extends JFrame {
     private static final long serialVersionUID = 1L;
 
     // Game and UI constants
-    private static final int ROWS = 10;
-    private static final int COLS = 10;
+    private int ROWS = 10;
+    private int COLS = 10;
+    private static final int WINDOW_WIDTH = 1000;
+    public static final int WINDOW_HEIGHT = 750;
     private static final int RIGHT_PANEL_WIDTH = 320;
     private static final String GAME_NAME = "420 Maze It";
+    
+    public static final int EASY = 10;
+    public static final int MEDIUM = 18; 
+    public static final int HARD = 25;
 
     // Swing globals
     private Font baseFont;
@@ -83,7 +89,7 @@ public class UserInterface extends JFrame {
         grid.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
         grid.setLayout(new GridLayout(ROWS, COLS));
 
-        populateGrid(ROWS, COLS, true);
+        populateGrid();
         parent.add(grid);
 
         // 2) on the right - control panel
@@ -164,7 +170,7 @@ public class UserInterface extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 player.moveToStart();
                 score = 0; // TODO maybe a penalty for resetting?
-                populateGrid(ROWS, COLS, false);
+                refreshGrid();
                 resetTimer(timerLabel);
             }
         });
@@ -232,7 +238,7 @@ public class UserInterface extends JFrame {
         button.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                populateGrid(ROWS, COLS, true);
+                populateGrid();
                 resetTimer(timerLabel);
             }
         });
@@ -263,7 +269,7 @@ public class UserInterface extends JFrame {
 
         this.add(parent);
         this.setTitle(GAME_NAME);
-        this.setSize(1000, 750);
+        this.setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
         this.setResizable(false);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setLocationRelativeTo(null);
@@ -377,7 +383,7 @@ public class UserInterface extends JFrame {
                     if (maze.isLegalMove(player.getRow(), player.getCol(), d)) {
                         player.move(d);
                         score++;
-                        refreshGrid(grid, d, player.getRow(), player.getCol() );
+                        refreshGrid();
                     }
                 }
             }
@@ -386,18 +392,16 @@ public class UserInterface extends JFrame {
     }
 
     /**
-     * Populate the grid with tiles for a maze
+     * Populate the grid with tiles for a new maze
      * @param rows - Number of rows in the grid
      * @param cols - Number of columns in the grid
      * @param newMaze - Whether a new maze should be generated
      */
-    public void populateGrid(int rows, int cols, boolean newMaze) {
-        grid.setLayout(new GridLayout(rows, cols));
+    public void populateGrid() {
+        grid.setLayout(new GridLayout(ROWS, COLS));
         grid.removeAll();
         isGameActive = true;
-        if (newMaze) {
-            maze = new Maze(ROWS,COLS);
-        }
+        maze = new Maze(ROWS, COLS);
         player = new Player();
         score = 0;
 
@@ -405,8 +409,8 @@ public class UserInterface extends JFrame {
 
         grid.removeAll();
 
-        for (int row = 0; row < rows; row++) {
-            for (int col = 0; col < cols; col++) {
+        for (int row = 0; row < ROWS; row++) {
+            for (int col = 0; col < COLS; col++) {
                 JLabel label = new JLabel();
                 label.setHorizontalAlignment(SwingConstants.CENTER);
                 label.setVerticalAlignment(SwingConstants.CENTER);
@@ -417,11 +421,11 @@ public class UserInterface extends JFrame {
                 char tileValue = maze.getTileFrom(row, col).getValue();
 
                 //get the correct image for a tile
-                String icon = gridIcon(rows, cols, row, col);
+                String icon = gridIcon(ROWS, COLS, row, col);
 
-                //Use these scales for when maze is is 10x10 (maybe for easy maze?)
-                int scaledWidth = 65;
-                int scaledHeight = 69;
+                // Scale the width based on number of rows and columns
+                int scaledWidth = (WINDOW_WIDTH - RIGHT_PANEL_WIDTH) / COLS - 3;
+                int scaledHeight = WINDOW_HEIGHT / ROWS - 6;
 
                 //Use these scales for when maze is 18x18 (maybe for medium maze?)
                 //int scaledWidth = 35;
@@ -485,8 +489,11 @@ public class UserInterface extends JFrame {
     }
 
 
-    public void refreshGrid(JPanel grid, Direction d, int row, int col) {
+    public void refreshGrid() {
         if (isGameActive) {
+            int row = player.getRow();
+            int col = player.getCol();
+            
             // new player pos
             JLabel labelCurr = new JLabel();
             labelCurr.setHorizontalAlignment(SwingConstants.CENTER);
@@ -499,24 +506,24 @@ public class UserInterface extends JFrame {
             grid.add(labelCurr,row * COLS + col);
 
             // Use these scales for when maze is is 10x10 (maybe for easy maze?)
-            int scaledWidth = 65;
-            int scaledHeight = 69;
+            int scaledWidth = (WINDOW_WIDTH - RIGHT_PANEL_WIDTH) / ROWS - 3;
+            int scaledHeight = WINDOW_HEIGHT / COLS - 6;
 
             // Use these scales for when maze is 18x18 (maybe for medium maze?)
             //int scaledWidth = 35;
             //int scaledHeight = 39;
 
-            //old player pos
+            // old player pos
             JLabel labelPrev = new JLabel();
             labelPrev.setHorizontalAlignment(SwingConstants.CENTER);
             labelPrev.setVerticalAlignment(SwingConstants.CENTER);
             labelPrev.setOpaque(true);
             labelPrev.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1));
 
-            String icon = null;
-            int gridPosition = 0;
+            String prevIcon = gridIcon(ROWS, COLS, player.getPrevRow(), player.getPrevCol());
+            int prevPosition = player.getPrevRow() * COLS + player.getPrevCol();
 
-            switch (d) {
+            /*switch (d) {
                 // ie "if we got to this spot by moving UP, then prev position was row+1
                 case UP:
                     icon = gridIcon(ROWS, COLS, row+1, col);
@@ -536,11 +543,11 @@ public class UserInterface extends JFrame {
                     break;
                 default:
                     break;
-            }
+            }*/
 
-            labelPrev.setIcon(new ImageIcon(new ImageIcon(icon).getImage().getScaledInstance(scaledWidth, scaledHeight, Image.SCALE_DEFAULT)));
-            grid.remove(gridPosition);
-            grid.add(labelPrev,gridPosition);
+            labelPrev.setIcon(new ImageIcon(new ImageIcon(prevIcon).getImage().getScaledInstance(scaledWidth, scaledHeight, Image.SCALE_DEFAULT)));
+            grid.remove(prevPosition);
+            grid.add(labelPrev,prevPosition);
 
             // at start - disable reset
             if (resetButton != null) {

@@ -37,6 +37,9 @@ public class Player {
     }
     
     public void moveToStart() {
+        prevCol = col;
+        prevRow = row;
+        
         row = 0;
         col = 0;
     }

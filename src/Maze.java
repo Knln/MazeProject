@@ -27,25 +27,24 @@ public class Maze {
         // TODO: place 2 items for medium, 3 items for hard.
         // 		 store item positions in some neat way
         
-        // TODO maybe border the maze with walls?
         for (int i=0; i<rows; i++) {
             for (int j=0; j<cols; j++) {
 
                 if (i == 0 && j == 0) {
                     // start
-                    tiles[i][j] = new Tile(Tile.START);
+                    tiles[i][j] = new Tile(Tile.START, 0);
                 } else if (i == itemRow && j == itemCol) { 
                 	// item spawn
-                	tiles[i][j] = new Tile(Tile.ITEM);	
-            	} else if (i == ROWS-1 && j == COLS - 1) {
+                	tiles[i][j] = new Tile(Tile.ITEM, 200);
+                } else if (i == ROWS-1 && j == COLS - 1) {
                     // finish
-                    tiles[i][j] = new Tile(Tile.FINISH);
+                    tiles[i][j] = new Tile(Tile.FINISH, 0);
                 } else if (rand.nextFloat() > 0.79) {
-                    // want 30% as walls
-                    tiles[i][j] = new Tile(Tile.WALL);
+                    // 21% walls
+                    tiles[i][j] = new Tile(Tile.WALL, 0);
                 } else {
                     // and the rest as empty spaces
-                    tiles[i][j] = new Tile(Tile.EMPTY);
+                    tiles[i][j] = new Tile(Tile.EMPTY, 0);
                 }
             }
         }
@@ -104,7 +103,7 @@ public class Maze {
     }
     
     public void setTileEmpty(int row, int col) {
-        tiles[row][col] = new Tile(Tile.EMPTY);
+        tiles[row][col] = new Tile(Tile.EMPTY, 0);
     }
 
 }

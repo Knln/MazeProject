@@ -17,6 +17,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -50,7 +53,6 @@ public class UserInterface extends JFrame {
     private static final int WINDOW_WIDTH = 1000;
     private static final int WINDOW_HEIGHT = 750;
     private static final int RIGHT_PANEL_WIDTH = 320;
-    private static final int ITEM_PICKUP = 20;
     private static final String GAME_NAME = "Dungeon Escape";
     
     public static final int EASY = 10;
@@ -63,6 +65,7 @@ public class UserInterface extends JFrame {
     // Swing globals
     private Font baseFont;
     private JPanel parent;
+    private JLabel movesLabel;
     private JLabel scoreLabel;
     private JPanel grid;
     private JButton resetButton;
@@ -70,6 +73,9 @@ public class UserInterface extends JFrame {
     
     // Game fields and attributes
     private int score;
+    private int moves;
+    private int resets;
+    private int timeElapsed;
     private boolean isGameActive;
     private Maze maze;
     private Player player;
@@ -222,9 +228,6 @@ public class UserInterface extends JFrame {
         JPanel holder = new JPanel();
         holder.setLayout(new BoxLayout(holder, BoxLayout.X_AXIS));
         holder.setBackground(null);
-        
-        isGameActive = true;
-        score = 0;
 
         // 1) on the left - a grid to hold the maze
         grid = new JPanel();
@@ -279,16 +282,21 @@ public class UserInterface extends JFrame {
         final JLabel timerLabel = new JLabel();
         timerLabel.setFont(baseFont);
         infoPanel.add(timerLabel);
-        infoPanel.add(Box.createVerticalStrut(10));
+        infoPanel.add(Box.createVerticalStrut(6));
         resetTimer(timerLabel);
 
+        movesLabel = new JLabel("Steps: " + moves);
+        movesLabel.setFont(baseFont);
+        infoPanel.add(movesLabel);
+        infoPanel.add(Box.createVerticalStrut(6));
+        
         scoreLabel = new JLabel("Score: " + score);
         scoreLabel.setFont(baseFont);
         infoPanel.add(scoreLabel);
-        infoPanel.add(Box.createVerticalStrut(10));
+        infoPanel.add(Box.createVerticalStrut(6));
 
         currentGamePanel.add(infoPanel);
-        currentGamePanel.add(Box.createVerticalStrut(20));
+        currentGamePanel.add(Box.createVerticalStrut(6));
 
         // hint and reset buttons
         JPanel hintResetPanel = new JPanel();
@@ -309,7 +317,9 @@ public class UserInterface extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 player.moveToStart();
-                score = 0; // TODO maybe a penalty for resetting?
+                resets++;
+                score = -50 * resets; // reset penalty
+                moves = 0;
                 refreshGrid();
                 resetTimer(timerLabel);
             }
@@ -464,33 +474,52 @@ public class UserInterface extends JFrame {
 
     private void writeHighScore(String name, int score) {
         try {
-            Files.write(Paths.get("highscores.txt"),
-                    (score + " " + name + System.lineSeparator()).getBytes(),
-                    StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+            if (name != null) {
+                String line = score + " " + name + System.lineSeparator();
+                Files.write(Paths.get("highscores.txt"), line.getBytes(),
+                        StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+            }
         }catch (IOException e) {
             //exception handling
+        }
+    }
+    
+    /**
+     * Wrapper class for high scores. Implements Comparable so that scores
+     * can be sorted
+     *
+     */
+    private class Score implements Comparable<Score> {
+        private int score;
+        private String name;
+        public Score(int score, String name) {
+            this.score = score;
+            this.name = name;
+        }
+        public int getScore() { return score; }
+        public String getName() { return name; }
+        
+        @Override
+        public int compareTo(Score arg0) {
+            return arg0.getScore() - score;
         }
     }
 
     private String readHighScores(int num) {
         String fileName = "highscores.txt";
-        StringBuilder scores = new StringBuilder();
-        String line;
+        List<Score> scores = new ArrayList<Score>();
 
         try {
             FileReader fileReader = new FileReader(fileName);
             BufferedReader bufferedReader = new BufferedReader(fileReader);
 
-            scores.append("<html>");
-            int count = 0;
+            String line;
             while((line = bufferedReader.readLine()) != null) {
-                scores.append(line + "<br>" );
-                count++;
-                if (count == num) {
-                    break;
-                }
+                String[] args = line.split(" ", 2);
+                int score = Integer.parseInt(args[0]);
+                String name = args[1];
+                scores.add(new Score(score, name));
             }
-            scores.append("</html>");
 
             bufferedReader.close();
         }
@@ -500,22 +529,39 @@ public class UserInterface extends JFrame {
         catch(IOException e) {
             System.out.println("Error reading file '" + fileName + "'");
         }
-        return scores.toString();
+        
+        // sort the scores
+        Collections.sort(scores);
+        
+        // format scores into html so they can be displayed in a JLabel
+        StringBuilder output = new StringBuilder();
+        output.append("<html>");
+        // only get the top n scores
+        int count = 0;
+        for (Score sc : scores) {
+            output.append("<b>" + sc.getScore() + "</b> " + sc.getName() + "<br>");
+            count++;
+            if (count == num) {
+                break;
+            }
+        }
+        output.append("</html>");
+        return output.toString();
     }
     
     private void resetTimer(final JLabel timerLabel){
         final Timer timer = new Timer(40, null);
         timer.addActionListener(new ActionListener(){
             public void actionPerformed(ActionEvent e){
-            	final int elapsed = (int)(System.currentTimeMillis() - startTime);
+            	timeElapsed = (int)(System.currentTimeMillis() - startTime);
             	
             	// update in the UI thread
             	SwingUtilities.invokeLater(new Runnable() {
                     @Override
                     public void run() {
-                        int ms = elapsed % 1000;
-                        int seconds = (elapsed / 1000) % 60;
-                        int minutes = elapsed / 1000 / 60;
+                        int ms = timeElapsed % 1000;
+                        int seconds = (timeElapsed / 1000) % 60;
+                        int minutes = timeElapsed / 1000 / 60;
                         timerLabel.setText("Time: " + String.format("%d:%02d.%03d", minutes, seconds, ms));
                     }
             	});
@@ -567,7 +613,7 @@ public class UserInterface extends JFrame {
                 if (arrowKeyPress) {
                     if (maze.isLegalMove(player.getRow(), player.getCol(), d)) {
                         player.move(d);
-                        score++;
+                        moves++;
                         refreshGrid();
                     }
                 }
@@ -585,10 +631,17 @@ public class UserInterface extends JFrame {
     public void populateGrid() {
         grid.setLayout(new GridLayout(ROWS, COLS));
         grid.removeAll();
-        isGameActive = true;
+        
+        // create a new maze with a new player
         maze = new Maze(ROWS, COLS);
         player = new Player();
+        
+        // set game parameters to default values
+        isGameActive = true;
         score = 0;
+        moves = 0;
+        resets = 0;
+        timeElapsed = 0;
 
         // old refreshGrid()
 
@@ -639,33 +692,15 @@ public class UserInterface extends JFrame {
             }
         }
 
+        if (movesLabel != null) {
+            movesLabel.setText("Moves: " + moves);
+        }
         if (scoreLabel != null) {
             scoreLabel.setText("Score: " + score);
         }
 
         // must be called to refresh the whole JFrame
         revalidate();
-
-        /*if (player.getRow() == ROWS - 1 && player.getCol() == COLS - 1) {
-            // reached the finish tile - they are finished
-            isGameActive = false;
-
-            resetButton.setEnabled(false);
-
-            // TODO: if high score, show this:
-            // Allow user to write new high score
-            String name = JOptionPane.showInputDialog("You win! \nScore: " + score + "\n \nNew high score! Enter your name:");
-            writeHighScore(name, score);
-            highScoresLabel.setText(readHighScores());
-
-            // TODO: else, show this:
-            // Show a popup telling the user they've finished the maze
-                JOptionPane optionPane = new JOptionPane("You is winrar!\n\nScore: " + score,
-                        JOptionPane.PLAIN_MESSAGE);
-                JDialog finishDialog = optionPane.createDialog(this, "Congratulations!");
-                finishDialog.setFont(baseFont);
-                finishDialog.setVisible(true);
-        }*/
     }
 
 
@@ -709,14 +744,22 @@ public class UserInterface extends JFrame {
                     resetButton.setEnabled(true);
                 }
             }
+            
+            // update score
+            score += maze.getTileFrom(player.getRow(), player.getCol()).getScore();
 
+            if (movesLabel != null) {
+                movesLabel.setText("Moves: " + moves);
+            }
+            if (scoreLabel != null) {
+                scoreLabel.setText("Score: " + score);
+            }
 
             // must be called to refresh the whole JFrame
             revalidate();
 
-            // check if player has reached an item
+            // if the player collects an item, replace the tile with an empty one
             if (maze.getTileFrom(player.getRow(), player.getCol()).getValue() == Tile.ITEM) {
-            	score += ITEM_PICKUP;
             	maze.setTileEmpty(player.getRow(), player.getCol());
             }
 
@@ -731,22 +774,45 @@ public class UserInterface extends JFrame {
                 isGameActive = false;
 
                 resetButton.setEnabled(false);
+                
+                // post-finish score calculation
+                // note - ROWS conveniently holds the current difficulty
+                switch (ROWS) {
+                    case EASY:
+                        // limit - 15 seconds, 40 moves
+                        // scaling factor - 1.05
+                        score += (40 - moves) * 100;
+                        score += (15000 - timeElapsed) / 3;
+                        score *= 1.05;
+                        break;
+                    case MEDIUM:
+                        // limit - 30 seconds, 100 moves
+                        // scaling factor - 0.7
+                        score += (100 - moves) * 100;
+                        score += (30000 - timeElapsed) / 3;
+                        score *= 0.7;
+                        break;
+                    case HARD:
+                        // limit - 45 seconds, 160 moves
+                        // scaling factor - 0.55
+                        score += (160 - moves) * 100;
+                        score += (45000 - timeElapsed) / 3;
+                        score *= 0.55;
+                        break;
+                }
+                
+                if (score < 0) score = 0;
+                
+                scoreLabel.setText("Final score: " + score);
 
-                // TODO: if high score, show this:
                 // Allow user to write new high score
-                String name = JOptionPane.showInputDialog("You've cleared the dungeon!\n"
+                String name = JOptionPane.showInputDialog(null,
+                        "You've cleared the dungeon!\n"
                         + "Score: " + score + "\n\n"
-                        + "New high score! Enter your name:");
+                        + "Enter your name:",
+                        "Congratulations!", JOptionPane.PLAIN_MESSAGE);
                 writeHighScore(name, score);
                 highScoresLabel.setText(readHighScores(4));
-
-                // TODO: else, show this:
-                // Show a popup telling the user they've finished the maze
-//                JOptionPane optionPane = new JOptionPane("You win!\n\nScore: " + score,
-//                        JOptionPane.PLAIN_MESSAGE);
-//                JDialog finishDialog = optionPane.createDialog(this, "Congratulations!");
-//
-//                finishDialog.setVisible(true);
             }
         }
     }

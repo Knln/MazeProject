@@ -7,6 +7,7 @@ public class Tile
     public static final char EMPTY = 'e';
     public static final char START = 's';
     public static final char FINISH = 'f';
+    public static final char ITEM = 'i';
     
     char value;
 

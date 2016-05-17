@@ -50,6 +50,7 @@ public class UserInterface extends JFrame {
     private static final int WINDOW_WIDTH = 1000;
     private static final int WINDOW_HEIGHT = 750;
     private static final int RIGHT_PANEL_WIDTH = 320;
+    private static final int ITEM_PICKUP = 20;
     private static final String GAME_NAME = "Dungeon Escape";
     
     public static final int EASY = 10;
@@ -709,13 +710,22 @@ public class UserInterface extends JFrame {
                 }
             }
 
-            if (scoreLabel != null) {
-                scoreLabel.setText("Score: " + score);
-            }
 
             // must be called to refresh the whole JFrame
             revalidate();
 
+            // check if player has reached an item
+            if (maze.getTileFrom(player.getRow(), player.getCol()).getValue() == Tile.ITEM) {
+            	score += ITEM_PICKUP;
+            	maze.setTileEmpty(player.getRow(), player.getCol());
+            }
+
+            // refresh current score
+            if (scoreLabel != null) {
+                scoreLabel.setText("Score: " + score);
+            }
+
+            // check if player has finished the maze
             if (player.getRow() == ROWS - 1 && player.getCol() == COLS - 1) {
                 // reached the finish tile - they are finished
                 isGameActive = false;

@@ -19,7 +19,14 @@ public class Maze {
         COLS = cols;
         tiles = new Tile[rows][cols];
         Random rand = new Random();
-
+        
+        // make one position for the item
+        int itemRow = rand.nextInt(ROWS);
+        int itemCol = rand.nextInt(COLS);
+        
+        // TODO: place 2 items for medium, 3 items for hard.
+        // 		 store item positions in some neat way
+        
         // TODO maybe border the maze with walls?
         for (int i=0; i<rows; i++) {
             for (int j=0; j<cols; j++) {
@@ -27,7 +34,10 @@ public class Maze {
                 if (i == 0 && j == 0) {
                     // start
                     tiles[i][j] = new Tile(Tile.START);
-                } else if (i == ROWS-1 && j == COLS - 1) {
+                } else if (i == itemRow && j == itemCol) { 
+                	// item spawn
+                	tiles[i][j] = new Tile(Tile.ITEM);	
+            	} else if (i == ROWS-1 && j == COLS - 1) {
                     // finish
                     tiles[i][j] = new Tile(Tile.FINISH);
                 } else if (rand.nextFloat() > 0.79) {
@@ -91,6 +101,10 @@ public class Maze {
      */
     public Tile getTileFrom(int row, int col) {
         return tiles[row][col];
+    }
+    
+    public void setTileEmpty(int row, int col) {
+        tiles[row][col] = new Tile(Tile.EMPTY);
     }
 
 }

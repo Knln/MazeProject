@@ -14,6 +14,7 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
@@ -472,13 +473,29 @@ public class UserInterface extends JFrame {
         layout.last(parent);
     }
 
-    private void writeHighScore(String name, int score) {
+    private void writeHighScore(String name, int score)  {
+    	String nameToPrint;
+
+    	// if file does not exist, create file 
+    	try {
+    	    Files.createFile(Paths.get("highscores.txt"));
+    	} catch(FileAlreadyExistsException ignored) {
+    		// ignore
+    	} catch (Exception e) {
+    		// ignore
+    	}
+    	
+    	// if name not provided, print "Unknown" to file instead
+    	if (name == null || name.isEmpty()) {
+    		nameToPrint = "Unknown";
+    	} else {
+    		nameToPrint = name;
+    	}
+    	
         try {
-            if (name != null) {
-                String line = score + " " + name + System.lineSeparator();
-                Files.write(Paths.get("highscores.txt"), line.getBytes(),
-                        StandardOpenOption.CREATE, StandardOpenOption.APPEND);
-            }
+            Files.write(Paths.get("highscores.txt"),
+                    (score + " " + nameToPrint + System.lineSeparator()).getBytes(),
+                    StandardOpenOption.CREATE, StandardOpenOption.APPEND);
         }catch (IOException e) {
             //exception handling
         }

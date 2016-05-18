@@ -20,27 +20,58 @@ public class Maze {
         tiles = new Tile[rows][cols];
         Random rand = new Random();
         
-        // make one position for the item
-        int itemRow = rand.nextInt(ROWS);
-        int itemCol = rand.nextInt(COLS);
+        // make 3 positions for the items
+        int[] itemRows = new int[4];
+        int[] itemCols = new int[4];
         
-        // TODO: place 2 items for medium, 3 items for hard.
-        // 		 store item positions in some neat way
+        // initialize item positions
+        if (ROWS == UserInterface.EASY) {
+            itemRows[0] = rand.nextInt(ROWS);
+            itemCols[0] = rand.nextInt(ROWS);
+        	itemRows[1] = -1;
+	        itemCols[1] = -1;
+        	itemRows[2] = -1;
+	        itemCols[2] = -1;
+        	itemRows[3] = -1;
+	        itemCols[3] = -1;
+        } else if (ROWS == UserInterface.MEDIUM) {
+	        itemRows[0] = rand.nextInt(ROWS);
+	        itemCols[0] = rand.nextInt(COLS);
+	        itemRows[1] = rand.nextInt(ROWS);
+	        itemCols[1] = rand.nextInt(COLS);
+        	itemRows[2] = -1;
+	        itemCols[2] = -1;
+        	itemRows[3] = -1;
+	        itemCols[3] = -1;
+        } else {
+	        itemRows[0] = rand.nextInt(ROWS);
+	        itemCols[0] = rand.nextInt(COLS);
+	        itemRows[1] = rand.nextInt(ROWS);
+	        itemCols[1] = rand.nextInt(COLS);
+	        itemRows[2] = rand.nextInt(ROWS);
+	        itemCols[2] = rand.nextInt(COLS);
+	        itemRows[3] = rand.nextInt(ROWS);
+	        itemCols[3] = rand.nextInt(COLS);
+        } 
         
+        // TODO maybe border the maze with walls?
         for (int i=0; i<rows; i++) {
             for (int j=0; j<cols; j++) {
 
                 if (i == 0 && j == 0) {
                     // start
                     tiles[i][j] = new Tile(Tile.START, 0);
-                } else if (i == itemRow && j == itemCol) { 
+                } else if ( (i == itemRows[0] && j == itemCols[0])
+                		 || (i == itemRows[1] && j == itemCols[1])
+                		 || (i == itemRows[2] && j == itemCols[2])
+                		 || (i == itemRows[3] && j == itemCols[3])) { 
                 	// item spawn
-                	tiles[i][j] = new Tile(Tile.ITEM, 200);
-                } else if (i == ROWS-1 && j == COLS - 1) {
+                	tiles[i][j] = new Tile(Tile.ITEM, 200);	
+            	} else if (i == ROWS-1 && j == COLS - 1) {
                     // finish
                     tiles[i][j] = new Tile(Tile.FINISH, 0);
                 } else if (rand.nextFloat() > 0.79) {
-                    // 21% walls
+                    // want 30% as walls
                     tiles[i][j] = new Tile(Tile.WALL, 0);
                 } else {
                     // and the rest as empty spaces

@@ -493,8 +493,8 @@ public class UserInterface extends JFrame {
     	}
     	
         try {
-            Files.write(Paths.get("highscores.txt"),
-                    (score + " " + nameToPrint + System.lineSeparator()).getBytes(),
+        	String line = score + " " + nameToPrint + System.lineSeparator();
+            Files.write(Paths.get("highscores.txt"),line.getBytes(),
                     StandardOpenOption.CREATE, StandardOpenOption.APPEND);
         }catch (IOException e) {
             //exception handling

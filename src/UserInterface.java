@@ -70,6 +70,7 @@ public class UserInterface extends JFrame {
     private JLabel scoreLabel;
     private JPanel grid;
     private JButton resetButton;
+    private JButton hintButton;
     private long startTime;
     
     // Game fields and attributes
@@ -81,6 +82,7 @@ public class UserInterface extends JFrame {
     private Maze maze;
     private Player player;
     private JLabel highScoresLabel;
+    private JPanel inventoryPanel;
 
     public UserInterface() {
         // set properties of the frame
@@ -110,12 +112,12 @@ public class UserInterface extends JFrame {
         selectStartScreen();
     }
     
-    public void initStartScreen() {
+    private void initStartScreen() {
         BackgroundPanel holder = new BackgroundPanel();
         holder.setLayout(new BoxLayout(holder, BoxLayout.Y_AXIS));
         holder.setBackgroundImage("res/splash.jpg");
         
-        holder.add(Box.createVerticalStrut(180));
+        holder.add(Box.createVerticalStrut(150));
         
         Font menuFont = baseFont.deriveFont(Font.BOLD, 20);
         
@@ -133,6 +135,8 @@ public class UserInterface extends JFrame {
         
         holder.add(Box.createVerticalStrut(75));
         
+        Dimension buttonSize = new Dimension(200, 50);
+        
         // start button
         JButton start = new JButton("New Game");
         start.setFont(menuFont);
@@ -141,8 +145,8 @@ public class UserInterface extends JFrame {
         start.setContentAreaFilled(false);
         start.setFocusable(false);
         start.setAlignmentX(CENTER_ALIGNMENT);
-        start.setPreferredSize(new Dimension(150, 50));
-        start.setMaximumSize(new Dimension(150, 50));
+        start.setPreferredSize(buttonSize);
+        start.setMaximumSize(buttonSize);
         start.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -176,7 +180,7 @@ public class UserInterface extends JFrame {
         });
         holder.add(start);
         
-        holder.add(Box.createVerticalStrut(50));
+        holder.add(Box.createVerticalStrut(40));
         
         // high scores button
         JButton highScores = new JButton("High Scores");
@@ -186,20 +190,50 @@ public class UserInterface extends JFrame {
         highScores.setContentAreaFilled(false);
         highScores.setFocusable(false);
         highScores.setAlignmentX(CENTER_ALIGNMENT);
-        highScores.setPreferredSize(new Dimension(150, 50));
-        highScores.setMaximumSize(new Dimension(150, 50));
+        highScores.setPreferredSize(buttonSize);
+        highScores.setMaximumSize(buttonSize);
         highScores.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                /*JOptionPane optionPane = new JOptionPane(readHighScores(), JOptionPane.PLAIN_MESSAGE);
-                JDialog dialog = optionPane.createDialog(null, "High Scores");
-                dialog.setVisible(true);*/
-                JOptionPane.showMessageDialog(null, readHighScores(15), "High Scores", JOptionPane.PLAIN_MESSAGE);
+                JOptionPane.showMessageDialog(null, readHighScores(15),
+                        "High Scores", JOptionPane.PLAIN_MESSAGE);
             }
         });
         holder.add(highScores);
         
-        holder.add(Box.createVerticalStrut(50));
+        holder.add(Box.createVerticalStrut(40));
+        
+        // about button
+        JButton about = new JButton("About");
+        about.setFont(menuFont);
+        about.setForeground(Color.WHITE);
+        about.setOpaque(false);
+        about.setContentAreaFilled(false);
+        about.setFocusable(false);
+        about.setAlignmentX(CENTER_ALIGNMENT);
+        about.setPreferredSize(buttonSize);
+        about.setMaximumSize(buttonSize);
+        about.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JOptionPane.showMessageDialog(null,
+                        "<html><body><p style='width: 400px;'>" +
+                        GAME_NAME + " is a Zelda-inspired maze game designed by UNSW computing students.<br><br>" +
+                        "<b>How to play:</b><br>" +
+                        "The aim of the game is to escape the dungeon by navigating to the " +
+                        "exit. All dungeons will have a single exit which is protected by a " +
+                        "locked door - the key must be picked up before the player can make a " +
+                        "clean escape. Along the way, items may also be picked up to increase " +
+                        "final score.<br><br>" +
+                        "<b>Controls:</b><br>" +
+                        "Use the arrow keys to move around the maze. Pretty simple right?<br>" + 
+                        "</p></body></html>",
+                        "About " + GAME_NAME, JOptionPane.PLAIN_MESSAGE);
+            }
+        });
+        holder.add(about);
+        
+        holder.add(Box.createVerticalStrut(40));
         
         // exit button
         JButton exit = new JButton("Exit");
@@ -209,8 +243,8 @@ public class UserInterface extends JFrame {
         exit.setContentAreaFilled(false);
         exit.setFocusable(false);
         exit.setAlignmentX(CENTER_ALIGNMENT);
-        exit.setPreferredSize(new Dimension(150, 50));
-        exit.setMaximumSize(new Dimension(150, 50));
+        exit.setPreferredSize(buttonSize);
+        exit.setMaximumSize(buttonSize);
         exit.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent arg0) {
@@ -225,7 +259,7 @@ public class UserInterface extends JFrame {
     /**
      * Initialise this user interface (JFrame)
      */
-    public void initMazeScreen() {
+    private void initMazeScreen() {
         JPanel holder = new JPanel();
         holder.setLayout(new BoxLayout(holder, BoxLayout.X_AXIS));
         holder.setBackground(null);
@@ -245,18 +279,19 @@ public class UserInterface extends JFrame {
         rhs.setLayout(new BoxLayout(rhs, BoxLayout.Y_AXIS));
         rhs.setBorder(BorderFactory.createEtchedBorder());
 
-        // ====== GAME NAME ======
-        JLabel nameLabel = new JLabel(GAME_NAME, SwingConstants.CENTER);
-        nameLabel.setPreferredSize(new Dimension(RIGHT_PANEL_WIDTH, 80));
-        nameLabel.setMaximumSize(new Dimension(RIGHT_PANEL_WIDTH, 80));
-        nameLabel.setAlignmentX(CENTER_ALIGNMENT);
-        nameLabel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 30));
-        nameLabel.setForeground(Color.WHITE);
-        nameLabel.setBackground(Color.GRAY);
-        nameLabel.setOpaque(true);
-        nameLabel.setBorder(BorderFactory.createEtchedBorder());
+        // ====== INVENTORY ======
+        inventoryPanel = new JPanel();
+        inventoryPanel.setLayout(new BoxLayout(inventoryPanel, BoxLayout.X_AXIS));
+        inventoryPanel.setPreferredSize(new Dimension(RIGHT_PANEL_WIDTH, 80));
+        inventoryPanel.setMaximumSize(new Dimension(RIGHT_PANEL_WIDTH, 80));
+        inventoryPanel.setAlignmentX(CENTER_ALIGNMENT);
+        TitledBorder invBorder = BorderFactory.createTitledBorder("Inventory");
+        invBorder.setTitleFont(baseFont.deriveFont(Font.BOLD));
+        invBorder.setTitleJustification(TitledBorder.CENTER);
+        inventoryPanel.setBorder(BorderFactory.createCompoundBorder(
+                invBorder, new EmptyBorder(5, 10, 5, 10)));
         
-        rhs.add(nameLabel);
+        rhs.add(inventoryPanel);
         rhs.add(Box.createVerticalStrut(10));
 
         // ====== CURRENT GAME ======
@@ -303,11 +338,31 @@ public class UserInterface extends JFrame {
         JPanel hintResetPanel = new JPanel();
         hintResetPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 40, 0));
 
-        JButton hintButton = new JButton("Hint");
+        hintButton = new JButton("Hint");
         hintButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                JOptionPane.showMessageDialog(UserInterface.this, "Do better");
+                // each hint costs 50 points
+                score -= 50;
+                scoreLabel.setText("Score: " + score);
+                
+                StringBuilder hint = new StringBuilder("");
+                MazeSolver solver = new MazeSolver();
+                List<Direction> path = solver.getBestPath(maze, player);
+                
+                int count = 0;
+                for (Direction d : path) {
+                    // get the next 8 moves
+                    if (count >= 8) break;
+                    switch (d) {
+                        case UP: hint.append("U"); break;
+                        case DOWN: hint.append("D"); break;
+                        case LEFT: hint.append("L"); break;
+                        case RIGHT: hint.append("R"); break;
+                    }
+                    count++;
+                }
+                JOptionPane.showMessageDialog(UserInterface.this, hint.toString());
             }
         });
         hintResetPanel.add(hintButton);
@@ -323,6 +378,8 @@ public class UserInterface extends JFrame {
                 moves = 0;
                 refreshGrid();
                 resetTimer(timerLabel);
+                // clear their inventory too
+                inventoryPanel.removeAll();
             }
         });
         hintResetPanel.add(resetButton);
@@ -601,7 +658,7 @@ public class UserInterface extends JFrame {
     private class ArrowKeyDispatcher implements KeyEventDispatcher {
         @Override
         public boolean dispatchKeyEvent(KeyEvent e) {
-            if (isGameActive && e.getID() == KeyEvent.KEY_PRESSED) {   // TODO: Debounce key press
+            if (isGameActive && e.getID() == KeyEvent.KEY_PRESSED) {
                 Direction d;
                 boolean arrowKeyPress = false;
 
@@ -645,13 +702,21 @@ public class UserInterface extends JFrame {
      * @param cols - Number of columns in the grid
      * @param newMaze - Whether a new maze should be generated
      */
-    public void populateGrid() {
+    private void populateGrid() {
         grid.setLayout(new GridLayout(ROWS, COLS));
         grid.removeAll();
         
         // create a new maze with a new player
-        maze = new Maze(ROWS, COLS);
         player = new Player();
+        maze = new Maze(ROWS, COLS);
+        
+        // TODO this part can be deleted once maze generation is working
+        // guarantees a solvable maze
+        MazeSolver solver = new MazeSolver();
+        player.collectKey();
+        while (solver.getBestPath(maze, player) == null) {
+            maze = new Maze(ROWS, COLS);
+        }
         
         // set game parameters to default values
         isGameActive = true;
@@ -659,9 +724,12 @@ public class UserInterface extends JFrame {
         moves = 0;
         resets = 0;
         timeElapsed = 0;
-
-        // old refreshGrid()
-
+        
+        // clear the inventory
+        if (inventoryPanel != null) {
+            inventoryPanel.removeAll();
+        }
+        
         grid.removeAll();
 
         for (int row = 0; row < ROWS; row++) {
@@ -708,6 +776,10 @@ public class UserInterface extends JFrame {
                 resetButton.setEnabled(true);
             }
         }
+        // enable hints
+        if (hintButton != null) {
+            hintButton.setEnabled(true);
+        }
 
         if (movesLabel != null) {
             movesLabel.setText("Moves: " + moves);
@@ -721,7 +793,7 @@ public class UserInterface extends JFrame {
     }
 
 
-    public void refreshGrid() {
+    private void refreshGrid() {
         if (isGameActive) {
             int row = player.getRow();
             int col = player.getCol();
@@ -749,7 +821,8 @@ public class UserInterface extends JFrame {
             String prevIcon = gridIcon(ROWS, COLS, player.getPrevRow(), player.getPrevCol());
             int prevPosition = player.getPrevRow() * COLS + player.getPrevCol();
 
-            labelPrev.setIcon(new ImageIcon(new ImageIcon(prevIcon).getImage().getScaledInstance(scaledWidth, scaledHeight, Image.SCALE_DEFAULT)));
+            labelPrev.setIcon(new ImageIcon(new ImageIcon(prevIcon).getImage()
+                    .getScaledInstance(scaledWidth, scaledHeight, Image.SCALE_DEFAULT)));
             grid.remove(prevPosition);
             grid.add(labelPrev,prevPosition);
 
@@ -778,6 +851,15 @@ public class UserInterface extends JFrame {
             // if the player collects an item, replace the tile with an empty one
             if (maze.getTileFrom(player.getRow(), player.getCol()).getValue() == Tile.ITEM) {
             	maze.setTileEmpty(player.getRow(), player.getCol());
+            	
+            	// add an item to their inventory
+            	// TODO tile4.png is a placeholder until an actual item sprite is added
+                JLabel label = new JLabel(new ImageIcon(new ImageIcon("res/tile4.png").getImage()
+                        .getScaledInstance(30, 30, Image.SCALE_DEFAULT)));
+                label.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+                
+                inventoryPanel.add(label);
+                inventoryPanel.add(Box.createHorizontalStrut(10));
             }
 
             // refresh current score
@@ -791,6 +873,7 @@ public class UserInterface extends JFrame {
                 isGameActive = false;
 
                 resetButton.setEnabled(false);
+                hintButton.setEnabled(false);
                 
                 // post-finish score calculation
                 // note - ROWS conveniently holds the current difficulty
@@ -834,7 +917,7 @@ public class UserInterface extends JFrame {
         }
     }
 
-    public String gridIcon(int rows, int cols, int row, int col) {
+    private String gridIcon(int rows, int cols, int row, int col) {
         //load the proper image for a tile
         String icon = null;
         char tileValue = maze.getTileFrom(row, col).getValue();

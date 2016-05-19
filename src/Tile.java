@@ -2,11 +2,11 @@
  * Created by brad on 9/05/16.
  */
 public class Tile {
-    public static final char WALL = 'w';
-    public static final char EMPTY = 'e';
+    public static final char WALL = '#';
+    public static final char EMPTY = '.';
     public static final char START = 's';
     public static final char FINISH = 'f';
-    public static final char ITEM = 'i';
+    public static final char ITEM = 'o';
     
     private char value;
     private int score;

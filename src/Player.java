@@ -9,11 +9,14 @@ public class Player {
     private int prevCol;
     private int prevRow;
     
+    private boolean hasKey;
+    
     public Player() {
         moveToStart();
         
         prevCol = 0;
         prevRow = 0;
+        hasKey = false;
     }
     
     public void move(Direction d) {
@@ -58,6 +61,14 @@ public class Player {
 
     public int getPrevRow() {
         return prevRow;
+    }
+    
+    public boolean hasKey() {
+        return hasKey;
+    }
+    
+    public void collectKey() {
+        hasKey = true;
     }
 
 }

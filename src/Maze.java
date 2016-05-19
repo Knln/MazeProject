@@ -7,6 +7,13 @@ public class Maze {
     private Tile[][] tiles;
     private int ROWS;
     private int COLS;
+    
+    // TODO replace this coordinate stuff with the coordinate object 
+    private int finishRow;
+    private int finishCol;
+    
+    private int keyRow = 0;
+    private int keyCol = 0;
 
     /**
      * Initialise the maze
@@ -25,36 +32,22 @@ public class Maze {
         int[] itemCols = new int[4];
         
         // initialize item positions
-        if (ROWS == UserInterface.EASY) {
-            itemRows[0] = rand.nextInt(ROWS);
-            itemCols[0] = rand.nextInt(ROWS);
-        	itemRows[1] = -1;
-	        itemCols[1] = -1;
-        	itemRows[2] = -1;
-	        itemCols[2] = -1;
-        	itemRows[3] = -1;
-	        itemCols[3] = -1;
-        } else if (ROWS == UserInterface.MEDIUM) {
-	        itemRows[0] = rand.nextInt(ROWS);
-	        itemCols[0] = rand.nextInt(COLS);
-	        itemRows[1] = rand.nextInt(ROWS);
-	        itemCols[1] = rand.nextInt(COLS);
-        	itemRows[2] = -1;
-	        itemCols[2] = -1;
-        	itemRows[3] = -1;
-	        itemCols[3] = -1;
-        } else {
-	        itemRows[0] = rand.nextInt(ROWS);
-	        itemCols[0] = rand.nextInt(COLS);
-	        itemRows[1] = rand.nextInt(ROWS);
-	        itemCols[1] = rand.nextInt(COLS);
-	        itemRows[2] = rand.nextInt(ROWS);
-	        itemCols[2] = rand.nextInt(COLS);
-	        itemRows[3] = rand.nextInt(ROWS);
-	        itemCols[3] = rand.nextInt(COLS);
-        } 
+        int items = 0;
+        switch (ROWS) {
+            case UserInterface.EASY: items = 1; break;
+            case UserInterface.MEDIUM: items = 2; break;
+            case UserInterface.HARD: items = 4; break;
+        }
         
-        // TODO maybe border the maze with walls?
+        for (int i = 0; i < items; i++) {
+            itemRows[i] = rand.nextInt(ROWS - 1);
+            itemCols[i] = rand.nextInt(COLS - 1);
+        }
+        for (int i = items; i < 4; i++) {
+            itemRows[i] = -1;
+            itemCols[i] = -1;
+        }
+        
         for (int i=0; i<rows; i++) {
             for (int j=0; j<cols; j++) {
 
@@ -70,7 +63,9 @@ public class Maze {
             	} else if (i == ROWS-1 && j == COLS - 1) {
                     // finish
                     tiles[i][j] = new Tile(Tile.FINISH, 0);
-                } else if (rand.nextFloat() > 0.79) {
+                    finishRow = ROWS - 1;
+                    finishCol = COLS - 1;
+                } else if (rand.nextFloat() > 0.7) {
                     // want 30% as walls
                     tiles[i][j] = new Tile(Tile.WALL, 0);
                 } else {
@@ -135,6 +130,30 @@ public class Maze {
     
     public void setTileEmpty(int row, int col) {
         tiles[row][col] = new Tile(Tile.EMPTY, 0);
+    }
+    
+    public int getRows() {
+        return ROWS;
+    }
+    
+    public int getCols() {
+        return COLS;
+    }
+    
+    public int getFinishRow() {
+        return finishRow;
+    }
+    
+    public int getFinishCol() {
+        return finishCol;
+    }
+    
+    public int getKeyRow() {
+        return keyRow;
+    }
+    
+    public int getKeyCol() {
+        return keyCol;
     }
 
 }

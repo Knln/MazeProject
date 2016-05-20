@@ -113,9 +113,8 @@ public class UserInterface extends JFrame {
     }
     
     private void initStartScreen() {
-        BackgroundPanel holder = new BackgroundPanel();
+        ImagePanel holder = new ImagePanel("res/splash.jpg", null, 0, 0, false);
         holder.setLayout(new BoxLayout(holder, BoxLayout.Y_AXIS));
-        holder.setBackgroundImage("res/splash.jpg");
         
         holder.add(Box.createVerticalStrut(150));
         
@@ -734,11 +733,7 @@ public class UserInterface extends JFrame {
 
         for (int row = 0; row < ROWS; row++) {
             for (int col = 0; col < COLS; col++) {
-                JLabel label = new JLabel();
-                label.setHorizontalAlignment(SwingConstants.CENTER);
-                label.setVerticalAlignment(SwingConstants.CENTER);
-                label.setOpaque(true);
-
+                
                 // get tile value, color label accordingly
                 char tileValue = maze.getTileFrom(row, col).getValue();
 
@@ -748,23 +743,37 @@ public class UserInterface extends JFrame {
                 // Scale the size based on number of rows and columns
                 int scaledWidth = (WINDOW_WIDTH - RIGHT_PANEL_WIDTH) / COLS;
                 int scaledHeight = WINDOW_HEIGHT / ROWS;
+                
+                //isPlayer is initialized to false
+                boolean isForegroundVisible = false;
 
+                //initialize foregroundIcon
+                String foregroundIcon = null;
+                
+                //check the Tile and set visibility and foregroundIcon
                 if (row == player.getRow() && col == player.getCol()) {
-                    label.setBackground(Color.BLUE);
+                	isForegroundVisible = true;
+                	foregroundIcon = "res/link4.png";
                 } else {
-                    switch (tileValue) {
-                        case Tile.START:
-                        case Tile.FINISH:
-                        case Tile.EMPTY:
-                            label.setIcon(new ImageIcon(new ImageIcon(icon).getImage().getScaledInstance(scaledWidth, scaledHeight, Image.SCALE_DEFAULT)));
+                	switch (tileValue) {
+                		case Tile.START:
+                		case Tile.FINISH:
+                		case Tile.EMPTY:
+                		case Tile.WALL:
+                			break;
+                		case Tile.ITEM:
+                			isForegroundVisible = true;
+                			foregroundIcon = "res/treasure.png";
+                			//foregroundIcon = "res/rupee.png";
                             break;
-                        case Tile.WALL:
-                            //label.setIcon(new ImageIcon(new ImageIcon(icon).getImage().getScaledInstance(scaledWidth, scaledHeight, Image.SCALE_DEFAULT)));
-                            label.setBackground(Color.DARK_GRAY);
-                            break;
-                    }
+                	}
                 }
-                grid.add(label);
+                
+                //add imagePanel to grid
+                ImagePanel label2 = new ImagePanel(icon, foregroundIcon, scaledHeight, scaledWidth, isForegroundVisible);
+                label2.setOpaque(true);
+                label2.repaint(); 
+                grid.add(label2);                
             }
         }
 
@@ -798,34 +807,51 @@ public class UserInterface extends JFrame {
             int row = player.getRow();
             int col = player.getCol();
             
-            // new player pos
-            JLabel labelCurr = new JLabel();
-            labelCurr.setHorizontalAlignment(SwingConstants.CENTER);
-            labelCurr.setVerticalAlignment(SwingConstants.CENTER);
-            labelCurr.setOpaque(true);
-
-            grid.remove(row * COLS + col);
-            labelCurr.setBackground(Color.BLUE);
-            grid.add(labelCurr,row * COLS + col);
-
             // Scale the size based on number of rows and columns
             int scaledWidth = (WINDOW_WIDTH - RIGHT_PANEL_WIDTH) / ROWS;
             int scaledHeight = WINDOW_HEIGHT / COLS;
+            
+            // new player pos   
+            boolean isPlayer = true;
+            String icon = gridIcon(ROWS, COLS, row, col);
+            String foregroundIcon = null;   
+            
+            // determine direction and choose which player icon to display
+            if (player.getPrevRow() == row+1 && player.getPrevCol() == col) {
+            	//UP
+            	foregroundIcon = "res/link2.png";
+            } else if (player.getPrevRow() == row-1 && player.getPrevCol() == col) {
+            	//DOWN
+            	foregroundIcon = "res/link1.png";
+            } else if (player.getPrevRow() == row && player.getPrevCol() == col+1) {
+            	//LEFT
+            	foregroundIcon = "res/link3.png";
+            } else if (player.getPrevRow() == row && player.getPrevCol() == col-1) {
+            	//RIGHT
+            	foregroundIcon = "res/link4.png";
+            }
 
+            // create new imagePanel for player's grid position
+            ImagePanel labelCurr = new ImagePanel(icon, foregroundIcon, scaledHeight, scaledWidth, isPlayer);
+            labelCurr.setOpaque(true);
+            labelCurr.repaint(); 
+
+            grid.remove(row * COLS + col);   
+            grid.add(labelCurr,row * COLS + col);
+            
             // old player pos
-            JLabel labelPrev = new JLabel();
-            labelPrev.setHorizontalAlignment(SwingConstants.CENTER);
-            labelPrev.setVerticalAlignment(SwingConstants.CENTER);
-            labelPrev.setOpaque(true);
-
             String prevIcon = gridIcon(ROWS, COLS, player.getPrevRow(), player.getPrevCol());
             int prevPosition = player.getPrevRow() * COLS + player.getPrevCol();
+            
+            // replace previous position on grid (i.e. remove player's sprite)
+            isPlayer = false;
+            ImagePanel labelPrev = new ImagePanel(prevIcon, foregroundIcon, scaledHeight, scaledWidth, isPlayer);
+            labelPrev.setOpaque(true);
+            labelPrev.repaint();
 
-            labelPrev.setIcon(new ImageIcon(new ImageIcon(prevIcon).getImage()
-                    .getScaledInstance(scaledWidth, scaledHeight, Image.SCALE_DEFAULT)));
             grid.remove(prevPosition);
             grid.add(labelPrev,prevPosition);
-
+            
             // at start - disable reset
             if (resetButton != null) {
                 if (player.getRow() == 0 && player.getCol() == 0) {
@@ -853,10 +879,10 @@ public class UserInterface extends JFrame {
             	maze.setTileEmpty(player.getRow(), player.getCol());
             	
             	// add an item to their inventory
-            	// TODO tile4.png is a placeholder until an actual item sprite is added
-                JLabel label = new JLabel(new ImageIcon(new ImageIcon("res/tile4.png").getImage()
-                        .getScaledInstance(30, 30, Image.SCALE_DEFAULT)));
-                label.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+            	// TODO treasure_inven.png is a placeholder until an actual item sprite is added
+                JLabel label = new JLabel(new ImageIcon(new ImageIcon("res/treasure_inven.png").getImage()
+                        .getScaledInstance(28, 28, Image.SCALE_DEFAULT)));
+                //label.setBorder(BorderFactory.createLineBorder(Color.BLACK));
                 
                 inventoryPanel.add(label);
                 inventoryPanel.add(Box.createHorizontalStrut(10));
@@ -930,8 +956,8 @@ public class UserInterface extends JFrame {
 
         switch (tileValue) {
             case Tile.WALL:
-                //return "blank.png";
-                //draw empty wall tile
+            	//draw empty wall tile
+                icon = "blank_wall.png";
                 break;
             case Tile.START:
                 //Test if tiles beside the start are walls
@@ -984,6 +1010,7 @@ public class UserInterface extends JFrame {
                 }
                 break;
             case Tile.EMPTY:
+            case Tile.ITEM:
                 // Test tiles not on edge of maze
                 if (row != 0 && maze.isWall(row - 1, col)){
                     up = false;
@@ -1069,6 +1096,7 @@ public class UserInterface extends JFrame {
         if (icon != null) {
             icon = "res/".concat(icon);
         }
+        //System.out.printf("%s\n",icon);
         return icon;
     }
 

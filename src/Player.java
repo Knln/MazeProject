@@ -67,8 +67,8 @@ public class Player {
         return hasKey;
     }
     
-    public void collectKey() {
-        hasKey = true;
+    public void setHasKey(boolean hasKey) {
+        this.hasKey = hasKey;
     }
 
 }

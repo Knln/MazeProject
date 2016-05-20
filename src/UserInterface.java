@@ -754,11 +754,11 @@ public class UserInterface extends JFrame {
         // TODO this part can be deleted once maze generation is working
         // guarantees a solvable maze
         MazeSolver solver = new MazeSolver();
-        player.collectKey();
+        player.setHasKey(true);											//TODO: learn what this does
         while (solver.getBestPath(maze, player) == null) {
             maze = new Maze(ROWS, COLS);
         }
-        
+        player.setHasKey(false);
         // set game parameters to default values
         isGameActive = true;
         score = 0;
@@ -803,6 +803,10 @@ public class UserInterface extends JFrame {
                 		case Tile.EMPTY:
                 		case Tile.WALL:
                 			break;
+                		case Tile.KEY:
+                			break;			// TODO: the key part of this is getting a key picture working
+                							// 		 it will really open doors
+                							//		 james pls
                 		case Tile.ITEM:
                 			isForegroundVisible = true;
                 			foregroundIcon = "res/treasure.png";
@@ -934,6 +938,20 @@ public class UserInterface extends JFrame {
                 inventoryPanel.add(label);
                 inventoryPanel.add(Box.createHorizontalStrut(10));
             }
+            
+            if (maze.getTileFrom(player.getRow(), player.getCol()).getValue() == Tile.KEY) {
+            	maze.setTileEmpty(player.getRow(), player.getCol());
+            	player.setHasKey(true);
+            	
+            	// add the key to their inventory
+            	// TODO: get key icon working
+                JLabel label = new JLabel(new ImageIcon(new ImageIcon("res/treasure_inven.png").getImage()
+                        .getScaledInstance(28, 28, Image.SCALE_DEFAULT)));
+                //label.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+                
+                inventoryPanel.add(label);
+                inventoryPanel.add(Box.createHorizontalStrut(10));
+            }
 
             // refresh current score
             if (scoreLabel != null) {
@@ -941,7 +959,7 @@ public class UserInterface extends JFrame {
             }
 
             // check if player has finished the maze
-            if (player.getRow() == ROWS - 1 && player.getCol() == COLS - 1) {
+            if (player.hasKey() && player.getRow() == ROWS - 1 && player.getCol() == COLS - 1) {
                 // reached the finish tile - they are finished
                 isGameActive = false;
 
@@ -992,34 +1010,53 @@ public class UserInterface extends JFrame {
             
             // reset items if we are resetting
             if (isReset) {
+            	//variable for icon
+                boolean isForegroundVisible = false;
+                //initialize foregroundIcon
+                foregroundIcon = null;
+                //check the Tile and set visibility and foregroundIcon
+    			isForegroundVisible = true;
+            	
             	int[] itemRows = maze.getItemRows();
             	int[] itemCols = maze.getItemCols();
+            	
             	for (int i = 0; i < itemRows.length; i++) {
             		if (itemRows[i] >= 0) {            			
-            			//set tile as an item, score purposes etc
+            			//set tile as an item again, score purposes etc
             			maze.setTileItem(itemRows[i], itemCols[i]);
             			
             			//get correct icon for the item
                     	icon = gridIcon(ROWS, COLS, itemRows[i], itemCols[i]);
 
-                        //isPlayer is initialized to false
-                        boolean isForegroundVisible = false;
-
-                        //initialize foregroundIcon
-                        foregroundIcon = null;
-                        
-                        //check the Tile and set visibility and foregroundIcon
-            			isForegroundVisible = true;
             			foregroundIcon = "res/treasure.png";
                         
                         //add imagePanel to grid
-                        ImagePanel label2 = new ImagePanel(icon, foregroundIcon, scaledHeight, scaledWidth, isForegroundVisible);
-                        label2.setOpaque(true);
-                        label2.repaint(); 
+                        ImagePanel square = new ImagePanel(icon, foregroundIcon, scaledHeight, scaledWidth, isForegroundVisible);
+                        square.setOpaque(true);
+                        square.repaint(); 
                         grid.remove(itemRows[i] * COLS + itemCols[i]);
-                        grid.add(label2, itemRows[i] * COLS + itemCols[i]); 
+                        grid.add(square, itemRows[i] * COLS + itemCols[i]); 
             		}
             	}
+            	// reset key only if required
+            	if (player.hasKey()) {
+	            	int keyRow = maze.getKeyRow();
+	            	int keyCol = maze.getKeyCol();
+	            	int keyIndex = keyRow * COLS + keyCol;
+
+	            	//set tile as a key again, score purposes etc
+            		maze.setTileKey(keyRow, keyCol);
+            		
+            		//create Key component and re-add
+	            	icon = gridIcon(ROWS, COLS, keyRow, keyCol);
+	            	ImagePanel square = new ImagePanel(icon, foregroundIcon, scaledHeight, scaledWidth, false);
+	            	square.setOpaque(true);
+	            	square.repaint(); 
+	            	
+	            	grid.remove(keyIndex);
+	            	grid.add(square, keyIndex); 
+            	}
+            	
             }
         }
     }

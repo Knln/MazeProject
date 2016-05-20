@@ -17,7 +17,7 @@ public class SolverTest {
         }
         
         Player p = new Player();
-        p.collectKey();
+        p.setHasKey(true);
         
         MazeSolver solver = new MazeSolver();
         List<Direction> solution = solver.getBestPath(maze, p);

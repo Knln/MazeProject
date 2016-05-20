@@ -12,8 +12,8 @@ public class Maze {
     private int finishRow;
     private int finishCol;
     
-    private int keyRow = 0;
-    private int keyCol = 0;
+    private int keyRow;
+    private int keyCol;
     
     private int[] itemRows;
     private int[] itemCols;
@@ -30,7 +30,11 @@ public class Maze {
         tiles = new Tile[rows][cols];
         Random rand = new Random();
         
-//        // make 3 positions for the items
+        // create a position for the key
+        keyRow = rand.nextInt(ROWS - 1);
+        keyCol = rand.nextInt(COLS - 1);
+        
+        // create 3 positions for the items
         itemRows = new int[4];
         itemCols = new int[4];
         
@@ -63,10 +67,13 @@ public class Maze {
                 		 || (i == itemRows[3] && j == itemCols[3])) { 
                 	// item spawn
                 	tiles[i][j] = new Tile(Tile.ITEM, 200);	
-            	} else if (i == ROWS-2 && j == COLS - 1) {
+            	} else if (i == keyRow && j == keyCol) {
+                    // key
+                    tiles[i][j] = new Tile(Tile.KEY, 50);
+                } else if (i == ROWS-2 && j == COLS - 1) {
                     // make a wall here, for when we put in the door (to be confirmed) TODO: confirm
                     tiles[i][j] = new Tile(Tile.WALL, 0);
-                }else if (i == ROWS-1 && j == COLS - 1) {
+                } else if (i == ROWS-1 && j == COLS - 1) {
                     // finish
                     tiles[i][j] = new Tile(Tile.FINISH, 0);
                     finishRow = ROWS - 1;
@@ -140,6 +147,10 @@ public class Maze {
     
     public void setTileItem(int row, int col) {
         tiles[row][col] = new Tile(Tile.ITEM, 200);
+    }
+    
+    public void setTileKey(int row, int col) {
+        tiles[row][col] = new Tile(Tile.KEY, 50);
     }
     
     public int getRows() {

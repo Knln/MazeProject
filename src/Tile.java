@@ -7,6 +7,8 @@ public class Tile {
     public static final char START = 's';
     public static final char FINISH = 'f';
     public static final char ITEM = 'o';
+    public static final char KEY = 'k';
+    public static final char DOOR = 'd';
     
     private char value;
     private int score;

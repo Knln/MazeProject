@@ -375,7 +375,7 @@ public class UserInterface extends JFrame {
                 resets++;
                 score = -50 * resets; // reset penalty
                 moves = 0;
-                refreshGrid();
+                refreshGrid(true);
                 resetTimer(timerLabel);
                 // clear their inventory too
                 inventoryPanel.removeAll();
@@ -519,6 +519,7 @@ public class UserInterface extends JFrame {
         parent.add(holder);
     }
 
+    
     private void selectStartScreen() {
         CardLayout layout = (CardLayout) parent.getLayout();
         layout.first(parent);
@@ -687,7 +688,7 @@ public class UserInterface extends JFrame {
                     if (maze.isLegalMove(player.getRow(), player.getCol(), d)) {
                         player.move(d);
                         moves++;
-                        refreshGrid();
+                        refreshGrid(false);
                     }
                 }
             }
@@ -802,7 +803,7 @@ public class UserInterface extends JFrame {
     }
 
 
-    private void refreshGrid() {
+    private void refreshGrid(boolean isReset) {
         if (isGameActive) {
             int row = player.getRow();
             int col = player.getCol();
@@ -829,8 +830,12 @@ public class UserInterface extends JFrame {
             } else if (player.getPrevRow() == row && player.getPrevCol() == col-1) {
             	//RIGHT
             	foregroundIcon = "res/link4.png";
+            } else if (player.getCol() == 0 && player.getRow() == 0) {
+                // restart
+                foregroundIcon = "res/link4.png";
             }
 
+          
             // create new imagePanel for player's grid position
             ImagePanel labelCurr = new ImagePanel(icon, foregroundIcon, scaledHeight, scaledWidth, isPlayer);
             labelCurr.setOpaque(true);
@@ -939,6 +944,41 @@ public class UserInterface extends JFrame {
                         "Congratulations!", JOptionPane.PLAIN_MESSAGE);
                 writeHighScore(name, score);
                 highScoresLabel.setText(readHighScores(4));
+
+            	
+            }
+            
+            // reset items if we are resetting
+            if (isReset) {
+            	int[] itemRows = maze.getItemRows();
+            	int[] itemCols = maze.getItemCols();
+            	
+            	for (int i = 0; i < itemRows.length; i++) {
+            		if (itemRows[i] >= 0) {            			
+            			//set tile as an item, score purposes etc
+            			maze.setTileItem(itemRows[i], itemCols[i]);
+            			
+            			//get correct icon for the item
+                    	icon = gridIcon(ROWS, COLS, itemRows[i], itemCols[i]);
+
+                        //isPlayer is initialized to false
+                        boolean isForegroundVisible = false;
+
+                        //initialize foregroundIcon
+                        foregroundIcon = null;
+                        
+                        //check the Tile and set visibility and foregroundIcon
+            			isForegroundVisible = true;
+            			foregroundIcon = "res/treasure.png";
+                        
+                        //add imagePanel to grid
+                        ImagePanel label2 = new ImagePanel(icon, foregroundIcon, scaledHeight, scaledWidth, isForegroundVisible);
+                        label2.setOpaque(true);
+                        label2.repaint(); 
+                        grid.remove(itemRows[i] * COLS + itemCols[i]);
+                        grid.add(label2, itemRows[i] * COLS + itemCols[i]); 
+            		}
+            	}
             }
         }
     }
@@ -948,7 +988,7 @@ public class UserInterface extends JFrame {
         String icon = null;
         char tileValue = maze.getTileFrom(row, col).getValue();
 
-        //Can we go in these directions from current tile?
+        //can we go in these directions from current tile?
         boolean left = true;
         boolean right = true;
         boolean up = true;

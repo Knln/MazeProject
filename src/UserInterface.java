@@ -361,7 +361,10 @@ public class UserInterface extends JFrame {
                     }
                     count++;
                 }
-                JOptionPane.showMessageDialog(UserInterface.this, hint.toString());
+                //JOptionPane.showMessageDialog(UserInterface.this, hint.toString());
+                
+                // show the hint path 
+                showHint(hint.toString());
             }
         });
         hintResetPanel.add(hintButton);
@@ -519,6 +522,44 @@ public class UserInterface extends JFrame {
         parent.add(holder);
     }
 
+    private void showHint(String hint) {
+    	// split our hint into a char array
+    	// ie RRDDDR -> {'R','R','D','D','D','R'}
+    	char[] path = hint.toCharArray();
+    	
+    	int currRow = player.getRow();
+    	int currCol = player.getCol();
+    	int hintPosition = 0;
+    	
+    	for (char c : path) {
+    		switch (c) {
+	            case 'U':
+	            	currRow--;
+	                break;
+	            case 'D':
+	            	currRow++;
+	                break;
+	            case 'L':
+	            	currCol--;
+	                break;
+	            case 'R':
+	            	currCol++;
+	                break;
+	            default:
+	            	// ssshh go to sleep, no tears only dreams
+    		}
+    		hintPosition = ROWS * currRow + currCol;
+    		
+    		// get current component
+        	ImagePanel withHint = (ImagePanel)grid.getComponent(hintPosition);
+        	
+        	// give it a beautiful border
+        	withHint.setBorder(BorderFactory.createLineBorder(Color.WHITE));
+        	
+        	grid.remove(hintPosition);
+        	grid.add(withHint, hintPosition);
+    	}
+    }
     
     private void selectStartScreen() {
         CardLayout layout = (CardLayout) parent.getLayout();
@@ -774,6 +815,7 @@ public class UserInterface extends JFrame {
                 ImagePanel label2 = new ImagePanel(icon, foregroundIcon, scaledHeight, scaledWidth, isForegroundVisible);
                 label2.setOpaque(true);
                 label2.repaint(); 
+                										//TODO remove this TODO.
                 grid.add(label2);                
             }
         }
@@ -952,7 +994,6 @@ public class UserInterface extends JFrame {
             if (isReset) {
             	int[] itemRows = maze.getItemRows();
             	int[] itemCols = maze.getItemCols();
-            	
             	for (int i = 0; i < itemRows.length; i++) {
             		if (itemRows[i] >= 0) {            			
             			//set tile as an item, score purposes etc
@@ -988,7 +1029,7 @@ public class UserInterface extends JFrame {
         String icon = null;
         char tileValue = maze.getTileFrom(row, col).getValue();
 
-        //can we go in these directions from current tile?
+        //Can we go in these directions from current tile?
         boolean left = true;
         boolean right = true;
         boolean up = true;

@@ -1,7 +1,7 @@
 import java.util.Random;
 
 /**
- * Created by brad on 9/05/16.
+ * A randomly generated maze populated with an assortment of tiles
  */
 public class Maze {
     private Tile[][] tiles;
@@ -141,14 +141,29 @@ public class Maze {
         return tiles[row][col];
     }
     
+    /**
+     * Set a specific tile to be empty
+     * @param row - Row of the tile to set
+     * @param col - Column of the tile to set
+     */
     public void setTileEmpty(int row, int col) {
         tiles[row][col] = new Tile(Tile.EMPTY, 0);
     }
     
+    /**
+     * Set a specific tile to be an item
+     * @param row - Row of the tile to set
+     * @param col - Column of the tile to set
+     */
     public void setTileItem(int row, int col) {
         tiles[row][col] = new Tile(Tile.ITEM, 200);
     }
     
+    /**
+     * Set a specific tile to hold the maze's key
+     * @param row - Row of the tile to set
+     * @param col - Column of the tile to set
+     */
     public void setTileKey(int row, int col) {
         tiles[row][col] = new Tile(Tile.KEY, 50);
     }

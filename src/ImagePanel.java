@@ -6,6 +6,11 @@ import java.io.IOException;
 import javax.imageio.ImageIO;
 import javax.swing.JPanel;
 
+/**
+ * A type of JPanel that allows the displaying of custom
+ * foreground and background images
+ *
+ */
 public class ImagePanel extends JPanel{
 	
 	/**
@@ -19,6 +24,14 @@ public class ImagePanel extends JPanel{
 	private int height;
 	private boolean isForegroundVisible;
 
+	/**
+	 * Creates a new ImagePanel with specified properties
+	 * @param backgroundIcon - path to the image to be shown in the background
+	 * @param foregroundIcon - path to the image to be shown in the foreground
+	 * @param height - height of the image in px
+	 * @param width - width of the image in px
+	 * @param isForegroundVisible - whether the foreground should be displayed
+	 */
     public ImagePanel(String backgroundIcon, String foregroundIcon, int height, int width, boolean isForegroundVisible) {
         
     	// load the background image

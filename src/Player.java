@@ -1,5 +1,5 @@
 /**
- * Created by brad on 9/05/16.
+ * Represents a player of the game
  */
 public class Player {
     
@@ -11,6 +11,9 @@ public class Player {
     
     private boolean hasKey;
     
+    /**
+     * Create a new player at the start (coords = [0, 0])
+     */
     public Player() {
         moveToStart();
         
@@ -19,6 +22,12 @@ public class Player {
         hasKey = false;
     }
     
+    /**
+     * Move the player in a certain direction
+     * @precondition The move is valid
+     * @postcondition The player's position will be updated based on the move
+     * @param d - Direction to move in
+     */
     public void move(Direction d) {
         prevCol = col;
         prevRow = row;
@@ -39,6 +48,9 @@ public class Player {
         }
     }
     
+    /**
+     * Move the player back to the start (coords = [0, 0])
+     */
     public void moveToStart() {
         prevCol = col;
         prevRow = row;
@@ -63,6 +75,10 @@ public class Player {
         return prevRow;
     }
     
+    /**
+     * Check whether the player has collected the key yet
+     * @return Whether the player has the key
+     */
     public boolean hasKey() {
         return hasKey;
     }

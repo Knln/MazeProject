@@ -1,5 +1,7 @@
 /**
- * Created by brad on 9/05/16.
+ * Represents a single tile in a Maze. This stores what type of
+ * tile it is (e.g. wall, empty, item) and how many points are 
+ * associated with it.
  */
 public class Tile {
     public static final char WALL = '#';

@@ -51,8 +51,8 @@ public class UserInterface extends JFrame {
     // Game and UI constants
     private int ROWS = 10;
     private int COLS = 10;
-    private static final int WINDOW_WIDTH = 1000;
-    private static final int WINDOW_HEIGHT = 750;
+    private static final int WINDOW_WIDTH = 1200;
+    private static final int WINDOW_HEIGHT = 880;
     private static final int RIGHT_PANEL_WIDTH = 320;
     private static final String GAME_NAME = "Dungeon Escape";
     
@@ -61,7 +61,7 @@ public class UserInterface extends JFrame {
     public static final int HARD = 25;
     
     // set difficulty to easy to begin with
-    private int difficulty = EASY;
+    private int difficulty;
 
     // Swing globals
     private Font baseFont;
@@ -116,7 +116,7 @@ public class UserInterface extends JFrame {
         ImagePanel holder = new ImagePanel("res/splash.jpg", null, 0, 0, false);
         holder.setLayout(new BoxLayout(holder, BoxLayout.Y_AXIS));
         
-        holder.add(Box.createVerticalStrut(150));
+        holder.add(Box.createVerticalStrut(200));
         
         Font menuFont = baseFont.deriveFont(Font.BOLD, 20);
         
@@ -179,7 +179,7 @@ public class UserInterface extends JFrame {
         });
         holder.add(start);
         
-        holder.add(Box.createVerticalStrut(40));
+        holder.add(Box.createVerticalStrut(50));
         
         // high scores button
         JButton highScores = new JButton("High Scores");
@@ -200,7 +200,7 @@ public class UserInterface extends JFrame {
         });
         holder.add(highScores);
         
-        holder.add(Box.createVerticalStrut(40));
+        holder.add(Box.createVerticalStrut(50));
         
         // about button
         JButton about = new JButton("About");
@@ -232,7 +232,7 @@ public class UserInterface extends JFrame {
         });
         holder.add(about);
         
-        holder.add(Box.createVerticalStrut(40));
+        holder.add(Box.createVerticalStrut(50));
         
         // exit button
         JButton exit = new JButton("Exit");
@@ -273,8 +273,8 @@ public class UserInterface extends JFrame {
 
         // 2) on the right - control panel
         JPanel rhs = new JPanel();
-        rhs.setPreferredSize(new Dimension(RIGHT_PANEL_WIDTH, 700));
-        rhs.setMaximumSize(new Dimension(RIGHT_PANEL_WIDTH, 700));
+        rhs.setPreferredSize(new Dimension(RIGHT_PANEL_WIDTH, WINDOW_HEIGHT));
+        rhs.setMaximumSize(new Dimension(RIGHT_PANEL_WIDTH, WINDOW_HEIGHT));
         rhs.setLayout(new BoxLayout(rhs, BoxLayout.Y_AXIS));
         rhs.setBorder(BorderFactory.createEtchedBorder());
 
@@ -298,8 +298,8 @@ public class UserInterface extends JFrame {
         currentGamePanel.setLayout(new BoxLayout(currentGamePanel, BoxLayout.Y_AXIS));
         currentGamePanel.setAlignmentX(CENTER_ALIGNMENT);
 
-        currentGamePanel.setPreferredSize(new Dimension(RIGHT_PANEL_WIDTH, 170));
-        currentGamePanel.setMaximumSize(new Dimension(RIGHT_PANEL_WIDTH, 170));
+        currentGamePanel.setPreferredSize(new Dimension(RIGHT_PANEL_WIDTH, 230));
+        currentGamePanel.setMaximumSize(new Dimension(RIGHT_PANEL_WIDTH, 230));
         TitledBorder currentBorder = BorderFactory.createTitledBorder("Current Maze");
         currentBorder.setTitleFont(baseFont.deriveFont(Font.BOLD));
         currentBorder.setTitleJustification(TitledBorder.CENTER);
@@ -345,26 +345,11 @@ public class UserInterface extends JFrame {
                 score -= 50;
                 scoreLabel.setText("Score: " + score);
                 
-                StringBuilder hint = new StringBuilder("");
                 MazeSolver solver = new MazeSolver();
                 List<Direction> path = solver.getBestPath(maze, player);
                 
-                int count = 0;
-                for (Direction d : path) {
-                    // get the next 8 moves
-                    if (count >= 8) break;
-                    switch (d) {
-                        case UP: hint.append("U"); break;
-                        case DOWN: hint.append("D"); break;
-                        case LEFT: hint.append("L"); break;
-                        case RIGHT: hint.append("R"); break;
-                    }
-                    count++;
-                }
-                //JOptionPane.showMessageDialog(UserInterface.this, hint.toString());
-                
-                // show the hint path 
-                showHint(hint.toString());
+                // show the hint path - should only show the next 8 moves
+                showHint(path.subList(0, Math.min(path.size(), 8)));
             }
         });
         hintResetPanel.add(hintButton);
@@ -378,15 +363,27 @@ public class UserInterface extends JFrame {
                 resets++;
                 score = -50 * resets; // reset penalty
                 moves = 0;
+                
                 refreshGrid(true);
                 resetTimer(timerLabel);
+                
                 // clear their inventory too
                 inventoryPanel.removeAll();
+                inventoryPanel.revalidate();
+                inventoryPanel.repaint();
             }
         });
         hintResetPanel.add(resetButton);
 
         currentGamePanel.add(hintResetPanel);
+        
+        JLabel warningLabel = new JLabel("<html><body><p style='width: " + (RIGHT_PANEL_WIDTH - 100) + "px'>"
+                + "Hint: -50 points<br>"
+                + "Reset: restart with -50 points per reset"
+                + "</p></body></html>");
+        warningLabel.setAlignmentX(CENTER_ALIGNMENT);
+        warningLabel.setFont(baseFont);
+        currentGamePanel.add(warningLabel);
 
         rhs.add(currentGamePanel);
         rhs.add(Box.createVerticalStrut(10));
@@ -486,8 +483,8 @@ public class UserInterface extends JFrame {
         JPanel highScoresPanel = new JPanel();
         highScoresPanel.setLayout(new BoxLayout(highScoresPanel, BoxLayout.Y_AXIS));
         highScoresPanel.setAlignmentX(CENTER_ALIGNMENT);
-        highScoresPanel.setPreferredSize(new Dimension(RIGHT_PANEL_WIDTH, 170));
-        highScoresPanel.setMaximumSize(new Dimension(RIGHT_PANEL_WIDTH, 170));
+        highScoresPanel.setPreferredSize(new Dimension(RIGHT_PANEL_WIDTH, 200));
+        highScoresPanel.setMaximumSize(new Dimension(RIGHT_PANEL_WIDTH, 200));
         TitledBorder highScoresBorder = BorderFactory.createTitledBorder("High Scores");
         highScoresBorder.setTitleFont(baseFont.deriveFont(Font.BOLD));
         highScoresBorder.setTitleJustification(TitledBorder.CENTER);
@@ -495,10 +492,12 @@ public class UserInterface extends JFrame {
                 highScoresBorder, new EmptyBorder(10, 10, 10, 10)));
         highScoresLabel = new JLabel();
         highScoresLabel.setFont(baseFont);
-        highScoresLabel.setText(readHighScores(4));
+        highScoresLabel.setText(readHighScores(5));
         highScoresPanel.add(highScoresLabel);
         
         rhs.add(highScoresPanel);
+        
+        rhs.add(Box.createVerticalStrut(10));
         
         // quick main menu button
         JButton menuButton = new JButton("Main Menu");
@@ -522,27 +521,27 @@ public class UserInterface extends JFrame {
         parent.add(holder);
     }
 
-    private void showHint(String hint) {
+    private void showHint(List<Direction> path) {
     	// split our hint into a char array
     	// ie RRDDDR -> {'R','R','D','D','D','R'}
-    	char[] path = hint.toCharArray();
+    	//char[] path = hint.toCharArray();
     	
     	int currRow = player.getRow();
     	int currCol = player.getCol();
     	int hintPosition = 0;
     	
-    	for (char c : path) {
-    		switch (c) {
-	            case 'U':
+    	for (Direction d : path) {
+    		switch (d) {
+	            case UP:
 	            	currRow--;
 	                break;
-	            case 'D':
+	            case DOWN:
 	            	currRow++;
 	                break;
-	            case 'L':
+	            case LEFT:
 	            	currCol--;
 	                break;
-	            case 'R':
+	            case RIGHT:
 	            	currCol++;
 	                break;
 	            default:
@@ -554,6 +553,7 @@ public class UserInterface extends JFrame {
         	ImagePanel withHint = (ImagePanel)grid.getComponent(hintPosition);
         	
         	// give it a beautiful border
+        	// white border master race
         	withHint.setBorder(BorderFactory.createLineBorder(Color.WHITE));
         	
         	grid.remove(hintPosition);
@@ -601,7 +601,7 @@ public class UserInterface extends JFrame {
     
     /**
      * Wrapper class for high scores. Implements Comparable so that scores
-     * can be sorted
+     * can be sorted.
      *
      */
     private class Score implements Comparable<Score> {
@@ -754,10 +754,21 @@ public class UserInterface extends JFrame {
         // TODO this part can be deleted once maze generation is working
         // guarantees a solvable maze
         MazeSolver solver = new MazeSolver();
-        player.setHasKey(true);											//TODO: learn what this does
-        while (solver.getBestPath(maze, player) == null) {
+        boolean solvable = false;
+        
+        while (!solvable) {
             maze = new Maze(ROWS, COLS);
+            player.setHasKey(false);
+            // check if there's a path from start to key
+            if (solver.getBestPath(maze, player) != null) {
+                player.setHasKey(true);
+                // check if there's a path from start to finish
+                if (solver.getBestPath(maze, player) != null) {
+                    solvable = true;
+                }
+            }
         }
+        
         player.setHasKey(false);
         // set game parameters to default values
         isGameActive = true;
@@ -769,6 +780,8 @@ public class UserInterface extends JFrame {
         // clear the inventory
         if (inventoryPanel != null) {
             inventoryPanel.removeAll();
+            inventoryPanel.revalidate();
+            inventoryPanel.repaint();
         }
         
         grid.removeAll();
@@ -779,7 +792,7 @@ public class UserInterface extends JFrame {
                 // get tile value, color label accordingly
                 char tileValue = maze.getTileFrom(row, col).getValue();
 
-                //get the correct image for a tile
+                // get the correct image for a tile
                 String icon = gridIcon(ROWS, COLS, row, col);
 
                 // Scale the size based on number of rows and columns
@@ -876,8 +889,9 @@ public class UserInterface extends JFrame {
             } else if (player.getPrevRow() == row && player.getPrevCol() == col-1) {
             	//RIGHT
             	foregroundIcon = "res/link4.png";
-            } else if (player.getCol() == 0 && player.getRow() == 0) {
-                // restart
+            }
+            if (isReset) {
+                // reset - make Link face right by default
                 foregroundIcon = "res/link4.png";
             }
 
@@ -959,7 +973,8 @@ public class UserInterface extends JFrame {
             }
 
             // check if player has finished the maze
-            if (player.hasKey() && player.getRow() == ROWS - 1 && player.getCol() == COLS - 1) {
+            if (player.getRow() == maze.getFinishRow() && player.getCol() == maze.getFinishCol()
+                    && player.hasKey()) {
                 // reached the finish tile - they are finished
                 isGameActive = false;
 
@@ -971,10 +986,10 @@ public class UserInterface extends JFrame {
                 switch (ROWS) {
                     case EASY:
                         // limit - 15 seconds, 40 moves
-                        // scaling factor - 1.05
+                        // scaling factor - 1.1
                         score += (40 - moves) * 100;
                         score += (15000 - timeElapsed) / 3;
-                        score *= 1.05;
+                        score *= 1.1;
                         break;
                     case MEDIUM:
                         // limit - 30 seconds, 100 moves
@@ -1003,9 +1018,7 @@ public class UserInterface extends JFrame {
                         + "Enter your name:",
                         "Congratulations!", JOptionPane.PLAIN_MESSAGE);
                 writeHighScore(name, score);
-                highScoresLabel.setText(readHighScores(4));
-
-            	
+                highScoresLabel.setText(readHighScores(5));
             }
             
             // reset items if we are resetting
@@ -1054,7 +1067,10 @@ public class UserInterface extends JFrame {
 	            	square.repaint(); 
 	            	
 	            	grid.remove(keyIndex);
-	            	grid.add(square, keyIndex); 
+	            	grid.add(square, keyIndex);
+	            	
+	            	// lastly take the key away
+	            	player.setHasKey(false);
             	}
             	
             }

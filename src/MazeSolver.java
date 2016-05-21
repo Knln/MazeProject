@@ -120,7 +120,7 @@ public class MazeSolver {
      * Implements Comparable so it can be used in a priority queue for A*
      *
      */
-    private class State implements Comparable<State>{
+    private class State implements Comparable<State> {
         private List<Direction> path;
         private int heuristic;
         private int row;

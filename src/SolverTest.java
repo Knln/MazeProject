@@ -6,12 +6,12 @@ public class SolverTest {
 
     @Test
     public void test() {
-        int size = 50;
+        int size = 10;
         Maze maze = new Maze(size, size);
         
         for (int i = 0; i < size; i++) {
             for (int j = 0; j < size; j++) {
-                System.out.print(maze.getTileFrom(i, j).getValue());
+                System.out.print(maze.getTileFrom(new Coordinate(i, j)).getValue());
             }
             System.out.print("\n");
         }

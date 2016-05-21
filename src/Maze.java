@@ -9,14 +9,10 @@ public class Maze {
     private int COLS;
     
     // TODO replace this coordinate stuff with the coordinate object 
-    private int finishRow;
-    private int finishCol;
+    private Coordinate finishPos;
+    private Coordinate keyPos;
     
-    private int keyRow;
-    private int keyCol;
-    
-    private int[] itemRows;
-    private int[] itemCols;
+    private Coordinate[] items;
 
     /**
      * Initialise the maze
@@ -31,53 +27,47 @@ public class Maze {
         Random rand = new Random();
         
         // create a position for the key
-        keyRow = rand.nextInt(ROWS - 1);
-        keyCol = rand.nextInt(COLS - 1);
+        keyPos = new Coordinate(rand.nextInt(ROWS - 1), rand.nextInt(COLS - 1));
+        finishPos = new Coordinate(ROWS - 1, COLS - 1);
         
         // create 3 positions for the items
-        itemRows = new int[4];
-        itemCols = new int[4];
+        items = new Coordinate[4];
         
         // initialize item positions
-        int items = 0;
+        int itemCount = 0;
         switch (ROWS) {
-            case UserInterface.EASY: items = 1; break;
-            case UserInterface.MEDIUM: items = 2; break;
-            case UserInterface.HARD: items = 4; break;
+            case UserInterface.EASY: itemCount = 1; break;
+            case UserInterface.MEDIUM: itemCount = 2; break;
+            case UserInterface.HARD: itemCount = 4; break;
         }
         
-        for (int i = 0; i < items; i++) {
-            itemRows[i] = rand.nextInt(ROWS - 1);
-            itemCols[i] = rand.nextInt(COLS - 1);
+        for (int i = 0; i < itemCount; i++) {
+            items[i] = new Coordinate(rand.nextInt(ROWS - 1), rand.nextInt(COLS - 1));
         }
-        for (int i = items; i < 4; i++) {
-            itemRows[i] = -1;
-            itemCols[i] = -1;
+        for (int i = itemCount; i < 4; i++) {
+            items[i] = new Coordinate(-1, -1);
         }
         
-        for (int i=0; i<rows; i++) {
-            for (int j=0; j<cols; j++) {
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                Coordinate thisPos = new Coordinate(i, j);
 
                 if (i == 0 && j == 0) {
                     // start
                     tiles[i][j] = new Tile(Tile.START, 0);
-                } else if ( (i == itemRows[0] && j == itemCols[0])
-                		 || (i == itemRows[1] && j == itemCols[1])
-                		 || (i == itemRows[2] && j == itemCols[2])
-                		 || (i == itemRows[3] && j == itemCols[3])) { 
+                } else if (thisPos.equals(items[0]) || thisPos.equals(items[1])
+                        || thisPos.equals(items[2]) || thisPos.equals(items[3])) { 
                 	// item spawn
                 	tiles[i][j] = new Tile(Tile.ITEM, 200);	
-            	} else if (i == keyRow && j == keyCol) {
+            	} else if (thisPos.equals(keyPos)) {
                     // key
                     tiles[i][j] = new Tile(Tile.KEY, 50);
                 } else if (i == ROWS-2 && j == COLS - 1) {
                     // make a wall here, for when we put in the door (to be confirmed) TODO: confirm
                     tiles[i][j] = new Tile(Tile.WALL, 0);
-                } else if (i == ROWS-1 && j == COLS - 1) {
+                } else if (thisPos.equals(finishPos)) {
                     // finish
                     tiles[i][j] = new Tile(Tile.FINISH, 0);
-                    finishRow = ROWS - 1;
-                    finishCol = COLS - 1;
                 } else if (rand.nextFloat() > 0.7) {
                     // want 30% as walls
                     tiles[i][j] = new Tile(Tile.WALL, 0);
@@ -91,28 +81,14 @@ public class Maze {
 
     /**
      * Whether a move from a given position in a given direction is legal
-     * @param row - row of square to move from
-     * @param col - column of square to move from
+     * @param pos - position to make the move from
      * @param direction - direction to move to
      * @return Whether the move is legal
      */
-    public boolean isLegalMove(int row, int col, Direction direction) {
-        if (row < 0 || row >= ROWS || col < 0 || col >= COLS) {
-            return false;
-        }
-
-        switch (direction) {
-            case UP:
-                return !isWall(row - 1, col);
-            case DOWN:
-                return !isWall(row + 1, col);
-            case LEFT:
-                return !isWall(row, col - 1);
-            case RIGHT:
-                return !isWall(row, col + 1);
-            default:
-                return false;
-        }
+    public boolean isLegalMove(Coordinate pos, Direction direction) {
+        Coordinate temp = pos.clone();
+        temp.shift(direction);
+        return !isWall(temp);
     }
 
     /**
@@ -121,14 +97,20 @@ public class Maze {
      * @param col - Column of tile to check
      * @return Whether it's a wall
      */
-    public boolean isWall(int row, int col) {
+    public boolean isWall(Coordinate pos) {
+        int row = pos.getRow();
+        int col = pos.getCol();
+        // prevent illegal array access
         if (row < 0 || row >= ROWS || col < 0 || col >= COLS) {
             return true;
         }
 
-        // TODO could make .isWall() or isSolid() part of the tile class
-        Tile t = getTileFrom(row, col);
+        Tile t = getTileFrom(pos);
         return (t.getValue() == Tile.WALL);
+    }
+    
+    public boolean isWall(int row, int col) {
+        return isWall(new Coordinate(row, col));
     }
 
     /**
@@ -137,8 +119,8 @@ public class Maze {
      * @param col - Column of tile to check
      * @return Whether it's a wall
      */
-    public Tile getTileFrom(int row, int col) {
-        return tiles[row][col];
+    public Tile getTileFrom(Coordinate pos) {
+        return tiles[pos.getRow()][pos.getCol()];
     }
     
     /**
@@ -146,8 +128,8 @@ public class Maze {
      * @param row - Row of the tile to set
      * @param col - Column of the tile to set
      */
-    public void setTileEmpty(int row, int col) {
-        tiles[row][col] = new Tile(Tile.EMPTY, 0);
+    public void setTileEmpty(Coordinate pos) {
+        tiles[pos.getRow()][pos.getCol()] = new Tile(Tile.EMPTY, 0);
     }
     
     /**
@@ -155,8 +137,8 @@ public class Maze {
      * @param row - Row of the tile to set
      * @param col - Column of the tile to set
      */
-    public void setTileItem(int row, int col) {
-        tiles[row][col] = new Tile(Tile.ITEM, 200);
+    public void setTileItem(Coordinate pos) {
+        tiles[pos.getRow()][pos.getCol()] = new Tile(Tile.ITEM, 200);
     }
     
     /**
@@ -164,8 +146,8 @@ public class Maze {
      * @param row - Row of the tile to set
      * @param col - Column of the tile to set
      */
-    public void setTileKey(int row, int col) {
-        tiles[row][col] = new Tile(Tile.KEY, 50);
+    public void setTileKey(Coordinate pos) {
+        tiles[pos.getRow()][pos.getCol()] = new Tile(Tile.KEY, 50);
     }
     
     public int getRows() {
@@ -176,28 +158,16 @@ public class Maze {
         return COLS;
     }
     
-    public int getFinishRow() {
-        return finishRow;
+    public Coordinate getFinishPos() {
+        return finishPos.clone();
     }
     
-    public int getFinishCol() {
-        return finishCol;
+    public Coordinate getKeyPos() {
+        return keyPos.clone();
     }
     
-    public int getKeyRow() {
-        return keyRow;
-    }
-    
-    public int getKeyCol() {
-        return keyCol;
-    }
-    
-    public int[] getItemRows() {
-    	return itemRows;
-    }
-    
-    public int[] getItemCols() {
-    	return itemCols;
+    public Coordinate[] getItemCoords() {
+        return items.clone();
     }
 
 }

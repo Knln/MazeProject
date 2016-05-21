@@ -526,8 +526,9 @@ public class UserInterface extends JFrame {
     	// ie RRDDDR -> {'R','R','D','D','D','R'}
     	//char[] path = hint.toCharArray();
     	
-    	int currRow = player.getRow();
-    	int currCol = player.getCol();
+        Coordinate pos = player.getCurrPos();
+    	int currRow = pos.getRow();
+    	int currCol = pos.getCol();
     	int hintPosition = 0;
     	
     	for (Direction d : path) {
@@ -726,7 +727,7 @@ public class UserInterface extends JFrame {
                 }
 
                 if (arrowKeyPress) {
-                    if (maze.isLegalMove(player.getRow(), player.getCol(), d)) {
+                    if (maze.isLegalMove(player.getCurrPos(), d)) {
                         player.move(d);
                         moves++;
                         refreshGrid(false);
@@ -788,12 +789,13 @@ public class UserInterface extends JFrame {
 
         for (int row = 0; row < ROWS; row++) {
             for (int col = 0; col < COLS; col++) {
+                Coordinate pos = new Coordinate(row, col);
                 
                 // get tile value, color label accordingly
-                char tileValue = maze.getTileFrom(row, col).getValue();
+                char tileValue = maze.getTileFrom(pos).getValue();
 
                 // get the correct image for a tile
-                String icon = gridIcon(ROWS, COLS, row, col);
+                String icon = gridIcon(ROWS, COLS, pos);
 
                 // Scale the size based on number of rows and columns
                 int scaledWidth = (WINDOW_WIDTH - RIGHT_PANEL_WIDTH) / COLS;
@@ -805,8 +807,9 @@ public class UserInterface extends JFrame {
                 //initialize foregroundIcon
                 String foregroundIcon = null;
                 
-                //check the Tile and set visibility and foregroundIcon
-                if (row == player.getRow() && col == player.getCol()) {
+                // check the Tile and set visibility and foregroundIcon
+                if (row == 0 && col == 0) {
+                    // start tile
                 	isForegroundVisible = true;
                 	foregroundIcon = "res/link4.png";
                 } else {
@@ -829,7 +832,8 @@ public class UserInterface extends JFrame {
                 }
                 
                 //add imagePanel to grid
-                ImagePanel label2 = new ImagePanel(icon, foregroundIcon, scaledHeight, scaledWidth, isForegroundVisible);
+                ImagePanel label2 = new ImagePanel(icon, foregroundIcon,
+                        scaledHeight, scaledWidth, isForegroundVisible);
                 label2.setOpaque(true);
                 label2.repaint(); 
                 										//TODO remove this TODO.
@@ -839,11 +843,7 @@ public class UserInterface extends JFrame {
 
         // at start - disable reset
         if (resetButton != null) {
-            if (player.getRow() == 0 && player.getCol() == 0) {
-                resetButton.setEnabled(false);
-            } else {
-                resetButton.setEnabled(true);
-            }
+            resetButton.setEnabled(false);
         }
         // enable hints
         if (hintButton != null) {
@@ -864,32 +864,31 @@ public class UserInterface extends JFrame {
 
     private void refreshGrid(boolean isReset) {
         if (isGameActive) {
-            int row = player.getRow();
-            int col = player.getCol();
-            
             // Scale the size based on number of rows and columns
             int scaledWidth = (WINDOW_WIDTH - RIGHT_PANEL_WIDTH) / ROWS;
             int scaledHeight = WINDOW_HEIGHT / COLS;
             
             // new player pos   
             boolean isPlayer = true;
-            String icon = gridIcon(ROWS, COLS, row, col);
-            String foregroundIcon = null;   
+            Coordinate currPos = player.getCurrPos();
+            String icon = gridIcon(ROWS, COLS, currPos);
+            String foregroundIcon = null;
             
-            // determine direction and choose which player icon to display
-            if (player.getPrevRow() == row+1 && player.getPrevCol() == col) {
-            	//UP
-            	foregroundIcon = "res/link2.png";
-            } else if (player.getPrevRow() == row-1 && player.getPrevCol() == col) {
-            	//DOWN
-            	foregroundIcon = "res/link1.png";
-            } else if (player.getPrevRow() == row && player.getPrevCol() == col+1) {
-            	//LEFT
-            	foregroundIcon = "res/link3.png";
-            } else if (player.getPrevRow() == row && player.getPrevCol() == col-1) {
-            	//RIGHT
-            	foregroundIcon = "res/link4.png";
+            switch (player.getLastMove()) {
+                case UP:
+                    foregroundIcon = "res/link2.png";
+                    break;
+                case DOWN:
+                    foregroundIcon = "res/link1.png";
+                    break;
+                case LEFT:
+                    foregroundIcon = "res/link3.png";
+                    break;
+                case RIGHT:
+                    foregroundIcon = "res/link4.png";
+                    break;
             }
+            
             if (isReset) {
                 // reset - make Link face right by default
                 foregroundIcon = "res/link4.png";
@@ -901,12 +900,14 @@ public class UserInterface extends JFrame {
             labelCurr.setOpaque(true);
             labelCurr.repaint(); 
 
-            grid.remove(row * COLS + col);   
-            grid.add(labelCurr,row * COLS + col);
+            int positionIndex = currPos.getRow() * COLS + currPos.getCol();
+            grid.remove(positionIndex);   
+            grid.add(labelCurr, positionIndex);
             
             // old player pos
-            String prevIcon = gridIcon(ROWS, COLS, player.getPrevRow(), player.getPrevCol());
-            int prevPosition = player.getPrevRow() * COLS + player.getPrevCol();
+            Coordinate prevPos = player.getPrevPos();
+            String prevIcon = gridIcon(ROWS, COLS, prevPos);
+            int prevPosition = prevPos.getRow() * COLS + prevPos.getCol();
             
             // replace previous position on grid (i.e. remove player's sprite)
             isPlayer = false;
@@ -919,7 +920,7 @@ public class UserInterface extends JFrame {
             
             // at start - disable reset
             if (resetButton != null) {
-                if (player.getRow() == 0 && player.getCol() == 0) {
+                if (currPos.equals(new Coordinate(0, 0))) {
                     resetButton.setEnabled(false);
                 } else {
                     resetButton.setEnabled(true);
@@ -927,7 +928,7 @@ public class UserInterface extends JFrame {
             }
             
             // update score
-            score += maze.getTileFrom(player.getRow(), player.getCol()).getScore();
+            score += maze.getTileFrom(currPos).getScore();
 
             if (movesLabel != null) {
                 movesLabel.setText("Moves: " + moves);
@@ -940,8 +941,8 @@ public class UserInterface extends JFrame {
             revalidate();
 
             // if the player collects an item, replace the tile with an empty one
-            if (maze.getTileFrom(player.getRow(), player.getCol()).getValue() == Tile.ITEM) {
-            	maze.setTileEmpty(player.getRow(), player.getCol());
+            if (maze.getTileFrom(currPos).getValue() == Tile.ITEM) {
+            	maze.setTileEmpty(currPos);
             	
             	// add an item to their inventory
             	// TODO treasure_inven.png is a placeholder until an actual item sprite is added
@@ -953,8 +954,8 @@ public class UserInterface extends JFrame {
                 inventoryPanel.add(Box.createHorizontalStrut(10));
             }
             
-            if (maze.getTileFrom(player.getRow(), player.getCol()).getValue() == Tile.KEY) {
-            	maze.setTileEmpty(player.getRow(), player.getCol());
+            if (maze.getTileFrom(currPos).getValue() == Tile.KEY) {
+            	maze.setTileEmpty(currPos);
             	player.setHasKey(true);
             	
             	// add the key to their inventory
@@ -973,8 +974,7 @@ public class UserInterface extends JFrame {
             }
 
             // check if player has finished the maze
-            if (player.getRow() == maze.getFinishRow() && player.getCol() == maze.getFinishCol()
-                    && player.hasKey()) {
+            if (currPos.equals(maze.getFinishPos()) && player.hasKey()) {
                 // reached the finish tile - they are finished
                 isGameActive = false;
 
@@ -1030,38 +1030,40 @@ public class UserInterface extends JFrame {
                 //check the Tile and set visibility and foregroundIcon
     			isForegroundVisible = true;
             	
-            	int[] itemRows = maze.getItemRows();
-            	int[] itemCols = maze.getItemCols();
+            	Coordinate[] items = maze.getItemCoords();
             	
-            	for (int i = 0; i < itemRows.length; i++) {
-            		if (itemRows[i] >= 0) {            			
+            	for (int i = 0; i < items.length; i++) {
+            	    Coordinate itemPos = items[i];
+            		if (itemPos.getRow() >= 0) {            			
             			//set tile as an item again, score purposes etc
-            			maze.setTileItem(itemRows[i], itemCols[i]);
+            			maze.setTileItem(itemPos);
             			
             			//get correct icon for the item
-                    	icon = gridIcon(ROWS, COLS, itemRows[i], itemCols[i]);
+                    	icon = gridIcon(ROWS, COLS, itemPos);
 
             			foregroundIcon = "res/treasure.png";
                         
                         //add imagePanel to grid
-                        ImagePanel square = new ImagePanel(icon, foregroundIcon, scaledHeight, scaledWidth, isForegroundVisible);
+                        ImagePanel square = new ImagePanel(icon, foregroundIcon,
+                                scaledHeight, scaledWidth, isForegroundVisible);
                         square.setOpaque(true);
-                        square.repaint(); 
-                        grid.remove(itemRows[i] * COLS + itemCols[i]);
-                        grid.add(square, itemRows[i] * COLS + itemCols[i]); 
+                        square.repaint();
+                        
+                        int itemIndex = itemPos.getRow() * COLS + itemPos.getCol();
+                        grid.remove(itemIndex);
+                        grid.add(square, itemIndex); 
             		}
             	}
             	// reset key only if required
             	if (player.hasKey()) {
-	            	int keyRow = maze.getKeyRow();
-	            	int keyCol = maze.getKeyCol();
-	            	int keyIndex = keyRow * COLS + keyCol;
-
+            	    Coordinate keyPos = maze.getKeyPos();
+            	    int keyIndex = keyPos.getRow() * COLS + keyPos.getCol();
+            	    
 	            	//set tile as a key again, score purposes etc
-            		maze.setTileKey(keyRow, keyCol);
+            		maze.setTileKey(maze.getKeyPos());
             		
             		//create Key component and re-add
-	            	icon = gridIcon(ROWS, COLS, keyRow, keyCol);
+	            	icon = gridIcon(ROWS, COLS, keyPos);
 	            	ImagePanel square = new ImagePanel(icon, foregroundIcon, scaledHeight, scaledWidth, false);
 	            	square.setOpaque(true);
 	            	square.repaint(); 
@@ -1077,10 +1079,12 @@ public class UserInterface extends JFrame {
         }
     }
 
-    private String gridIcon(int rows, int cols, int row, int col) {
+    private String gridIcon(int rows, int cols, Coordinate pos) {
         //load the proper image for a tile
         String icon = null;
-        char tileValue = maze.getTileFrom(row, col).getValue();
+        char tileValue = maze.getTileFrom(pos).getValue();
+        int row = pos.getRow();
+        int col = pos.getCol();
 
         //Can we go in these directions from current tile?
         boolean left = true;
@@ -1095,21 +1099,21 @@ public class UserInterface extends JFrame {
                 break;
             case Tile.START:
                 //Test if tiles beside the start are walls
-                if (maze.isWall(row + 1, col)){
+                if (maze.isWall(row + 1, col)) {
                     down = false;
                 }
-                if (maze.isWall(row, col + 1)){
+                if (maze.isWall(row, col + 1)) {
                     right = false;
                 }
     
                 //Give appropriate Tile
-                if (down && right){
+                if (down && right) {
                     icon = "tile6_2.png";
                 }
-                if (down && !right){
+                if (down && !right) {
                     icon = "tile6_3.png";
                 }
-                if (!down && right){
+                if (!down && right) {
                     icon = "tile6.png";
                 }
                 if (!down && !right) {
@@ -1120,10 +1124,10 @@ public class UserInterface extends JFrame {
                 break;
             case Tile.FINISH:
                 // Test if tiles beside the finish are walls
-                if (maze.isWall(row - 1,col)){
+                if (maze.isWall(row - 1,col)) {
                     up = false;
                 }
-                if (maze.isWall(row, col - 1)){
+                if (maze.isWall(row, col - 1)) {
                     left = false;
                 }
     

@@ -20,15 +20,14 @@ public class MazeSolver {
      */
     public List<Direction> getBestPath(Maze maze, Player player) {
         boolean hasKey = player.hasKey();
-        int row = player.getRow();
-        int col = player.getCol();
+        Coordinate position = player.getCurrPos();
         
         if (hasKey) {
             // navigate to the finish
-            return navigate(maze, row, col, maze.getFinishRow(), maze.getFinishCol());
+            return navigate(maze, position, maze.getFinishPos());
         } else {
             // navigate to the key
-            return navigate(maze, row, col, maze.getKeyRow(), maze.getKeyCol());
+            return navigate(maze, position, maze.getKeyPos());
         }
     }
     
@@ -38,19 +37,16 @@ public class MazeSolver {
     /**
      * A* navigation from one place to another through a maze
      * @param maze - Maze to navigate
-     * @param startRow - starting row
-     * @param startCol - starting column
-     * @param endRow - destination row
-     * @param endCol - destination column
+     * @param position - Current position
+     * @param destination - Destination position
      * @return A list of directions to get from the specified start to the destination.
      *  Returns null if there is no possible path
      */
-    private List<Direction> navigate(Maze maze, int startRow, int startCol, int endRow, int endCol) {
-        // indexed on row * cols + col
-        Hashtable<Integer, Boolean> visited = new Hashtable<Integer, Boolean>();
+    private List<Direction> navigate(Maze maze, Coordinate position, Coordinate destination) {
+        Hashtable<Coordinate, Boolean> visited = new Hashtable<Coordinate, Boolean>();
         PriorityQueue<State> queue = new PriorityQueue<State>();
         
-        State start = new State(new ArrayList<Direction>(), 0, startRow, startCol);
+        State start = new State(new ArrayList<Direction>(), 0, position);
         queue.add(start);
         
         int count = 0;
@@ -65,21 +61,21 @@ public class MazeSolver {
             }
             
             s = queue.remove();
-            if (s.isFinished(endRow, endCol)) {
+            if (s.isFinished(destination)) {
                 break;
             }
-            visited.put(s.getRow() * maze.getCols() + s.getCol(), true);
+            visited.put(s.position, true);
             
             List<Direction> path = s.getPath();
-            int currRow = s.getRow();
-            int currCol = s.getCol();
+            Coordinate currPos = s.getPosition();
             
             for (Direction d : directions) {
-                if (maze.isLegalMove(currRow, currCol, d)) {
+                if (maze.isLegalMove(currPos, d)) {
                     List<Direction> newPath = new ArrayList<Direction>(path);
                     newPath.add(d);
-                    int newRow = currRow;
-                    int newCol = currCol;
+                    
+                    int newRow = currPos.getRow();
+                    int newCol = currPos.getCol();
                     switch (d) {
                         case DOWN:
                             newRow++;
@@ -94,10 +90,12 @@ public class MazeSolver {
                             newRow--;
                             break;
                     }
-                    int heuristic = Math.abs(newCol - endCol) + Math.abs(newRow - endRow);
+                    int heuristic = Math.abs(newCol - destination.getCol())
+                            + Math.abs(newRow - destination.getRow());
                     
-                    if (!visited.containsKey(newRow * maze.getCols() + newCol)) { 
-                        queue.add(new State(newPath, heuristic, newRow, newCol));
+                    Coordinate newPos = new Coordinate(newRow, newCol);
+                    if (!visited.containsKey(newPos)) { 
+                        queue.add(new State(newPath, heuristic, newPos));
                     }
                 }
             }
@@ -106,7 +104,7 @@ public class MazeSolver {
         
         // note - this won't return a NullPointerException because the queue always has at least
         // one element - the starting state
-        if (s.isFinished(endRow, endCol)) {
+        if (s.isFinished(destination)) {
             return s.getPath();
         } else {
             // return null if there is no possible path
@@ -123,26 +121,22 @@ public class MazeSolver {
     private class State implements Comparable<State> {
         private List<Direction> path;
         private int heuristic;
-        private int row;
-        private int col;
+        private Coordinate position;
         
         /**
          * Constructor for a search state in A*
          * @param path - current list of directions representing this state
          * @param heuristic - estimated cost to the destination
-         * @param row - current row of this state
-         * @param col - current column of this state
+         * @param position - current position of this state
          */
-        public State(List<Direction> path, int heuristic, int row, int col) {
+        public State(List<Direction> path, int heuristic, Coordinate position) {
             this.path = path;
             this.heuristic = heuristic;
-            this.row = row;
-            this.col = col;
+            this.position = position;
         }
         
         public List<Direction> getPath() { return path; }
-        public int getRow() { return row; }
-        public int getCol() { return col; }
+        public Coordinate getPosition() { return position.clone(); }
         
         /**
          * Get total A* cost f(n) = g(n) + h(n) 
@@ -158,8 +152,8 @@ public class MazeSolver {
          * @param finishCol - destination column
          * @return Whether this is a finished state
          */
-        public boolean isFinished(int finishRow, int finishCol) {
-            return (row == finishRow && col == finishCol);
+        public boolean isFinished(Coordinate finish) {
+            return position.equals(finish);
         }
 
         @Override

@@ -820,9 +820,9 @@ public class UserInterface extends JFrame {
                 		case Tile.WALL:
                 			break;
                 		case Tile.KEY:
-                			break;			// TODO: the key part of this is getting a key picture working
-                							// 		 it will really open doors
-                							//		 james pls
+                			isForegroundVisible = true;
+                			foregroundIcon = "res/key.png";
+                			break;
                 		case Tile.ITEM:
                 			isForegroundVisible = true;
                 			foregroundIcon = "res/treasure.png";
@@ -960,7 +960,7 @@ public class UserInterface extends JFrame {
             	
             	// add the key to their inventory
             	// TODO: get key icon working
-                JLabel label = new JLabel(new ImageIcon(new ImageIcon("res/treasure_inven.png").getImage()
+                JLabel label = new JLabel(new ImageIcon(new ImageIcon("res/key_inven_v3.png").getImage()
                         .getScaledInstance(28, 28, Image.SCALE_DEFAULT)));
                 //label.setBorder(BorderFactory.createLineBorder(Color.BLACK));
                 
@@ -1064,7 +1064,11 @@ public class UserInterface extends JFrame {
             		
             		//create Key component and re-add
 	            	icon = gridIcon(ROWS, COLS, keyPos);
-	            	ImagePanel square = new ImagePanel(icon, foregroundIcon, scaledHeight, scaledWidth, false);
+	            	
+	            	foregroundIcon = "res/key.png";
+	            	
+	            	ImagePanel square = new ImagePanel(icon, foregroundIcon, 
+	            			scaledHeight, scaledWidth, isForegroundVisible);
 	            	square.setOpaque(true);
 	            	square.repaint(); 
 	            	
@@ -1149,6 +1153,7 @@ public class UserInterface extends JFrame {
                 break;
             case Tile.EMPTY:
             case Tile.ITEM:
+            case Tile.KEY:
                 // Test tiles not on edge of maze
                 if (row != 0 && maze.isWall(row - 1, col)){
                     up = false;

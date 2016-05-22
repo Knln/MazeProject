@@ -9,7 +9,6 @@ import java.util.PriorityQueue;
  */
 public class MazeSolver {
     
-    // TODO replace row, col fields with coordinate objects
     /**
      * Find the best path for solving the maze. If the player has the key,
      * this will find the best path to the exit. If they don't have the key
@@ -74,26 +73,9 @@ public class MazeSolver {
                     List<Direction> newPath = new ArrayList<Direction>(path);
                     newPath.add(d);
                     
-                    int newRow = currPos.getRow();
-                    int newCol = currPos.getCol();
-                    switch (d) {
-                        case DOWN:
-                            newRow++;
-                            break;
-                        case RIGHT:
-                            newCol++;
-                            break;
-                        case LEFT:
-                            newCol--;
-                            break;
-                        case UP:
-                            newRow--;
-                            break;
-                    }
-                    int heuristic = Math.abs(newCol - destination.getCol())
-                            + Math.abs(newRow - destination.getRow());
-                    
-                    Coordinate newPos = new Coordinate(newRow, newCol);
+                    Coordinate newPos = currPos.clone();
+                    newPos.shift(d);
+                    int heuristic = newPos.distanceFrom(destination);
                     if (!visited.containsKey(newPos)) { 
                         queue.add(new State(newPath, heuristic, newPos));
                     }

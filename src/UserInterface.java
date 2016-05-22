@@ -57,7 +57,7 @@ public class UserInterface extends JFrame {
     private static final String GAME_NAME = "Dungeon Escape";
     
     public static final int EASY = 10;
-    public static final int MEDIUM = 18; 
+    public static final int MEDIUM = 18;
     public static final int HARD = 25;
     
     // set difficulty to easy to begin with
@@ -217,7 +217,8 @@ public class UserInterface extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 JOptionPane.showMessageDialog(null,
                         "<html><body><p style='width: 400px;'>" +
-                        GAME_NAME + " is a Zelda-inspired maze game designed by UNSW computing students.<br><br>" +
+                        GAME_NAME + " (formerly 420 Maze It) is a Zelda-inspired maze game " +
+                        "designed by UNSW computing students.<br><br>" +
                         "<b>How to play:</b><br>" +
                         "The aim of the game is to escape the dungeon by navigating to the " +
                         "exit. All dungeons will have a single exit which is protected by a " +
@@ -835,8 +836,7 @@ public class UserInterface extends JFrame {
                 ImagePanel label2 = new ImagePanel(icon, foregroundIcon,
                         scaledHeight, scaledWidth, isForegroundVisible);
                 label2.setOpaque(true);
-                label2.repaint(); 
-                										//TODO remove this TODO.
+                label2.repaint();
                 grid.add(label2);                
             }
         }

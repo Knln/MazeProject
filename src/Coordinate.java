@@ -33,10 +33,6 @@ public class Coordinate {
         }
     }
     
-    public boolean is(int row, int col) {
-        return row == this.row && col == this.col;
-    }
-    
     @Override
     public Coordinate clone() {
         return new Coordinate(row, col);
@@ -61,5 +57,15 @@ public class Coordinate {
                 col++;
                 break;
         }
+    }
+    
+    /**
+     * Get the Manhattan distance from another Coordinate
+     * Manhattan distance = |x1 - x2| + |y1 - y2|
+     * @param c - Coordinate to compare to
+     * @return Manhattan distance between two Coordinates
+     */
+    public int distanceFrom(Coordinate c) {
+        return Math.abs(row - c.getRow()) + Math.abs(col - c.getCol());
     }
 }

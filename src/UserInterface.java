@@ -960,7 +960,7 @@ public class UserInterface extends JFrame {
             	
             	// add the key to their inventory
             	// TODO: get key icon working
-                JLabel label = new JLabel(new ImageIcon(new ImageIcon("res/key_inven_v3.png").getImage()
+                JLabel label = new JLabel(new ImageIcon(new ImageIcon("res/key_inven.png").getImage()
                         .getScaledInstance(28, 28, Image.SCALE_DEFAULT)));
                 //label.setBorder(BorderFactory.createLineBorder(Color.BLACK));
                 

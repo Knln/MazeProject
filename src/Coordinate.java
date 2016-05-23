@@ -34,6 +34,11 @@ public class Coordinate {
     }
     
     @Override
+    public int hashCode() {
+        return row * col + row * 41 + col * 37;
+    }
+    
+    @Override
     public Coordinate clone() {
         return new Coordinate(row, col);
     }

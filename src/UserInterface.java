@@ -42,10 +42,7 @@ import javax.swing.border.TitledBorder;
 
 public class UserInterface extends JFrame {
 
-    /**
-     * WTF is this
-     */
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 49875093875647L;
 
     // Game and UI constants
     private int ROWS = 10;
@@ -55,8 +52,8 @@ public class UserInterface extends JFrame {
     private static final int RIGHT_PANEL_WIDTH = 320;
     private static final String GAME_NAME = "Dungeon Escape";
     
-    public static final int EASY = 10;
-    public static final int MEDIUM = 18; 
+    public static final int EASY = 9;
+    public static final int MEDIUM = 17;
     public static final int HARD = 25;
     
     // set difficulty to easy to begin with
@@ -120,27 +117,10 @@ public class UserInterface extends JFrame {
         //ImagePanel holder = new ImagePanel("res/splash_ver2.png", null, 0, 0, false);
         holder.setLayout(new BoxLayout(holder, BoxLayout.Y_AXIS));
         
-        //was 200, now 285 to create space
-        holder.add(Box.createVerticalStrut(285));
+        // was 200, now 360 to create space
+        holder.add(Box.createVerticalStrut(360));
         
         Font menuFont = baseFont.deriveFont(Font.BOLD, 20);
-
-        /* 
-        //Don't think we need this anymore
-        JLabel nameLabel = new JLabel(GAME_NAME, SwingConstants.CENTER);
-        nameLabel.setPreferredSize(new Dimension(400, 80));
-        nameLabel.setMaximumSize(new Dimension(400, 80));
-        nameLabel.setAlignmentX(CENTER_ALIGNMENT);
-        nameLabel.setFont(menuFont.deriveFont((float) 30));
-        nameLabel.setForeground(Color.WHITE);
-        nameLabel.setBackground(Color.GRAY);
-        nameLabel.setOpaque(true);
-        nameLabel.setBorder(BorderFactory.createEtchedBorder());
-        holder.add(nameLabel);
-        */
-        
-        holder.add(Box.createVerticalStrut(75));
-        
         Dimension buttonSize = new Dimension(200, 50);
         
         // start button
@@ -801,8 +781,8 @@ public class UserInterface extends JFrame {
         // create a new maze with a new player
         player = new Player();
         maze = new Maze(ROWS, COLS);
-        
-        // TODO this part can be deleted once maze generation is working
+
+        /*
         // guarantees a solvable maze
         MazeSolver solver = new MazeSolver();
         boolean solvable = false;
@@ -818,7 +798,7 @@ public class UserInterface extends JFrame {
                     solvable = true;
                 }
             }
-        }
+        }*/
         
         player.setHasKey(false);
         // set game parameters to default values
@@ -989,7 +969,7 @@ public class UserInterface extends JFrame {
             
             // at start - disable reset
             if (resetButton != null) {
-                if (currPos.equals(new Coordinate(0, 0))) {
+                if (isReset) {
                     resetButton.setEnabled(false);
                 } else {
                     resetButton.setEnabled(true);
@@ -1014,10 +994,8 @@ public class UserInterface extends JFrame {
             	maze.setTileEmpty(currPos);
             	
             	// add an item to their inventory
-            	// TODO treasure_inven.png is a placeholder until an actual item sprite is added
                 JLabel label = new JLabel(new ImageIcon(new ImageIcon("res/treasure_inven.png").getImage()
                         .getScaledInstance(28, 28, Image.SCALE_DEFAULT)));
-                //label.setBorder(BorderFactory.createLineBorder(Color.BLACK));
                 
                 inventoryPanel.add(label);
                 inventoryPanel.add(Box.createHorizontalStrut(10));
@@ -1030,7 +1008,6 @@ public class UserInterface extends JFrame {
             	// add the key to their inventory
                 JLabel label = new JLabel(new ImageIcon(new ImageIcon("res/key_inven.png").getImage()
                         .getScaledInstance(28, 28, Image.SCALE_DEFAULT)));
-                //label.setBorder(BorderFactory.createLineBorder(Color.BLACK));
                 
                 inventoryPanel.add(label);
                 inventoryPanel.add(Box.createHorizontalStrut(10));

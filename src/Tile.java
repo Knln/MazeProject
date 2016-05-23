@@ -24,6 +24,10 @@ public class Tile {
         return value;
     }
     
+    public void setValue(char value) {
+        this.value = value;
+    }
+    
     public int getScore() {
         return score;
     }

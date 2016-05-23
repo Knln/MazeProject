@@ -1,4 +1,7 @@
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Random;
+import java.util.Stack;
 
 /**
  * A randomly generated maze populated with an assortment of tiles
@@ -8,7 +11,6 @@ public class Maze {
     private int ROWS;
     private int COLS;
     
-    // TODO replace this coordinate stuff with the coordinate object 
     private Coordinate finishPos;
     private Coordinate keyPos;
     
@@ -26,14 +28,32 @@ public class Maze {
         tiles = new Tile[rows][cols];
         Random rand = new Random();
         
-        // create a position for the key
-        keyPos = new Coordinate(rand.nextInt(ROWS - 1), rand.nextInt(COLS - 1));
         finishPos = new Coordinate(ROWS - 1, COLS - 1);
         
-        // create 3 positions for the items
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                // initialise as all walls
+                tiles[i][j] = new Tile(Tile.WALL, 0);
+            }
+        }
+        
+        recursiveExcavation(ROWS/2, COLS/2);
+        
+        // set (0, 0) as the start
+        tiles[0][0] = new Tile(Tile.START, 0);
+        // and set the finish tile
+        tiles[finishPos.getRow()][finishPos.getCol()] = new Tile(Tile.FINISH, 0);
+        
+        // the key will go in the middle
+        int keyRow = ROWS / 2;
+        int keyCol = COLS / 2;
+        tiles[keyRow][keyCol] = new Tile(Tile.KEY, 100);
+        keyPos = new Coordinate(keyRow, keyCol);
+        
+        // create positions for the items
         items = new Coordinate[4];
         
-        // initialize item positions
+        // each difficulty has an associated amount of items
         int itemCount = 0;
         switch (ROWS) {
             case UserInterface.EASY: itemCount = 1; break;
@@ -42,41 +62,112 @@ public class Maze {
         }
         
         for (int i = 0; i < itemCount; i++) {
-            items[i] = new Coordinate(rand.nextInt(ROWS - 1), rand.nextInt(COLS - 1));
+            int itemRow = rand.nextInt(ROWS - 1);
+            int itemCol = rand.nextInt(COLS - 1);
+            while (tiles[itemRow][itemCol].getValue() != Tile.EMPTY) {
+                itemRow = rand.nextInt(ROWS - 1);
+                itemCol = rand.nextInt(COLS - 1);
+            }
+            tiles[itemRow][itemCol] = new Tile(Tile.ITEM, 1000);
+            items[i] = new Coordinate(itemRow, itemCol);
         }
+        
         for (int i = itemCount; i < 4; i++) {
             items[i] = new Coordinate(-1, -1);
         }
+    }
+    
+    public void recursiveExcavation(int x, int y){
+        Stack<Coordinate> visited = new Stack<Coordinate>();
+        ArrayList<Integer> randomArrayList = null;
         
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < cols; j++) {
-                Coordinate thisPos = new Coordinate(i, j);
-
-                if (i == 0 && j == 0) {
-                    // start
-                    tiles[i][j] = new Tile(Tile.START, 0);
-                } else if (thisPos.equals(items[0]) || thisPos.equals(items[1])
-                        || thisPos.equals(items[2]) || thisPos.equals(items[3])) { 
-                	// item spawn
-                	tiles[i][j] = new Tile(Tile.ITEM, 200);	
-            	} else if (thisPos.equals(keyPos)) {
-                    // key
-                    tiles[i][j] = new Tile(Tile.KEY, 50);
-                } else if (i == ROWS-2 && j == COLS - 1) {
-                    // make a wall here, for when we put in the door (to be confirmed) TODO: confirm
-                    tiles[i][j] = new Tile(Tile.WALL, 0);
-                } else if (thisPos.equals(finishPos)) {
-                    // finish
-                    tiles[i][j] = new Tile(Tile.FINISH, 0);
-                } else if (rand.nextFloat() > 0.7) {
-                    // want 30% as walls
-                    tiles[i][j] = new Tile(Tile.WALL, 0);
-                } else {
-                    // and the rest as empty spaces
-                    tiles[i][j] = new Tile(Tile.EMPTY, 0);
+        visited.push(new Coordinate(x, y));
+        
+        while (!visited.isEmpty()){
+            randomArrayList = getRandomArray();
+            int x_init = x;
+            int y_init = y;
+            
+            for (Integer i: randomArrayList){
+                //Up Direction
+                if(i == 0){
+                    if(x-2 < 0 || tiles[x-2][y].getValue() == Tile.EMPTY){
+                        continue;
+                    }
+                    
+                    if (tiles[x-2][y].getValue() != Tile.EMPTY){
+                        tiles[x-2][y].setValue(Tile.EMPTY);
+                        tiles[x-1][y].setValue(Tile.EMPTY);
+                        visited.push(new Coordinate(x-2, y));
+                        x = x-2;
+                        break;
+                    }
+                }
+                
+                //Down Direction
+                if(i == 1 ){
+                    if(x+2 >= ROWS || tiles[x+2][y].getValue() == Tile.EMPTY){
+                        continue;
+                    } 
+                    if(tiles[x+2][y].getValue() != Tile.EMPTY){
+                        tiles[x+2][y].setValue(Tile.EMPTY);
+                        tiles[x+1][y].setValue(Tile.EMPTY);
+                        visited.push(new Coordinate(x+2, y));
+                        x = x+2;
+                        break;
+                    }
+                }
+                
+                //Left Direction
+                if(i == 2){
+                    if(y-2 < 0 || tiles[x][y-2].getValue() == Tile.EMPTY){
+                        continue;
+                    } 
+                    if(tiles[x][y-2].getValue() != Tile.EMPTY){
+                        tiles[x][y-2].setValue(Tile.EMPTY);
+                        tiles[x][y-1].setValue(Tile.EMPTY);
+                        visited.push(new Coordinate(x, y-2));
+                        y=y-2;
+                        break;
+                    }
+                }
+                //Right Direction
+                if(i == 3){
+                    if(y+2 >= COLS || tiles[x][y+2].getValue() == Tile.EMPTY){
+                        continue;
+                    } 
+                    if(tiles[x][y+2].getValue() != Tile.EMPTY){
+                        tiles[x][y+2].setValue(Tile.EMPTY);
+                        tiles[x][y+1].setValue(Tile.EMPTY);
+                        visited.push(new Coordinate(x,y+2));
+                        y=y+2;
+                        break;
+                    }
                 }
             }
+            
+            // After for loop
+            if(x_init == x && y_init == y){
+                Coordinate temp = visited.pop();
+                x = temp.getRow();
+                y = temp.getCol();
+            }
+            
+            randomArrayList.clear();
         }
+    }
+    
+    public ArrayList<Integer> getRandomArray(){
+        ArrayList<Integer> randomArrayList = new ArrayList<Integer>();
+        //Random rand = new Random();
+        
+        for (int i = 0; i < 4; i++) {
+            //randomArrayList.add(rand.nextInt(4));
+            randomArrayList.add(i);
+        }
+        Collections.shuffle(randomArrayList);
+        
+        return randomArrayList;
     }
 
     /**

@@ -63,7 +63,7 @@ public class MazeSolver {
             if (s.isFinished(destination)) {
                 break;
             }
-            visited.put(s.position, true);
+            visited.put(s.getPosition(), Boolean.TRUE);
             
             List<Direction> path = s.getPath();
             Coordinate currPos = s.getPosition();
@@ -76,7 +76,7 @@ public class MazeSolver {
                     Coordinate newPos = currPos.clone();
                     newPos.shift(d);
                     int heuristic = newPos.distanceFrom(destination);
-                    if (!visited.containsKey(newPos)) { 
+                    if (!visited.containsKey(newPos)) {
                         queue.add(new State(newPath, heuristic, newPos));
                     }
                 }

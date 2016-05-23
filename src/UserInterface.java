@@ -79,11 +79,14 @@ public class UserInterface extends JFrame {
     private int timeElapsed;
     private boolean isGameActive;
     private Maze maze;
+    private List<Coordinate> hintPath;
     private Player player;
     private JLabel highScoresLabel;
     private JPanel inventoryPanel;
 
     public UserInterface() {
+    	hintPath = new ArrayList<>();
+    	
         // set properties of the frame
         this.setTitle(GAME_NAME);
         this.setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
@@ -530,6 +533,11 @@ public class UserInterface extends JFrame {
         parent.add(holder);
     }
 
+    /**
+     * Visually displays the hint path on the maze.
+     * 
+     * @param path		The list of Directions for the suggested path.
+     */
     private void showHint(List<Direction> path) {
     	// current position of path as we create it
         Coordinate currPos = player.getCurrPos();
@@ -565,7 +573,43 @@ public class UserInterface extends JFrame {
         	
         	grid.remove(hintPosition);
         	grid.add(withHint, hintPosition);
+        	
+        	// add coordinate to hintPath to keep track of path
+        	hintPath.add(currPos.clone());
     	}
+    }
+    
+    /**
+     * Removes the hint path from the maze.
+     */
+    private void removeHint() {
+    	for (Coordinate hintCoordinate : hintPath) {
+    		// get tile value, color label accordingly
+            char tileValue = maze.getTileFrom(hintCoordinate).getValue();
+               		
+    		// ImagePanel setup
+            String prevIcon = gridIcon(ROWS, COLS, hintCoordinate);
+            int hintGridIndex = hintCoordinate.getRow() * COLS + hintCoordinate.getCol();
+            int scaledWidth = (WINDOW_WIDTH - RIGHT_PANEL_WIDTH) / COLS;
+            int scaledHeight = WINDOW_HEIGHT / ROWS;
+            boolean isForegroundVisible = false;
+            String foregroundIcon = null;
+            
+            // Setup if the tile was an item
+            if (tileValue == Tile.ITEM) {
+    			isForegroundVisible = true;
+    			foregroundIcon = "res/treasure.png";
+    			//foregroundIcon = "res/rupee.png";
+            }	
+            
+            ImagePanel normalImage = new ImagePanel(prevIcon, foregroundIcon, scaledHeight, scaledWidth, isForegroundVisible);
+            normalImage.setOpaque(true);
+            normalImage.repaint();
+
+            grid.remove(hintGridIndex);
+            grid.add(normalImage, hintGridIndex);
+    	}
+    	hintPath.clear();
     }
     
     private void selectStartScreen() {
@@ -842,7 +886,7 @@ public class UserInterface extends JFrame {
                         scaledHeight, scaledWidth, isForegroundVisible);
                 label2.setOpaque(true);
                 label2.repaint(); 
-                										//TODO remove this TODO.
+
                 grid.add(label2);                
             }
         }
@@ -879,6 +923,11 @@ public class UserInterface extends JFrame {
             Coordinate currPos = player.getCurrPos();
             String icon = gridIcon(ROWS, COLS, currPos);
             String foregroundIcon = null;
+            
+            // remove hint path when the player moves
+            if (!hintPath.isEmpty()) {
+            	removeHint();
+            }
             
             switch (player.getLastMove()) {
                 case UP:
@@ -979,7 +1028,6 @@ public class UserInterface extends JFrame {
             	player.setHasKey(true);
             	
             	// add the key to their inventory
-            	// TODO: get key icon working
                 JLabel label = new JLabel(new ImageIcon(new ImageIcon("res/key_inven.png").getImage()
                         .getScaledInstance(28, 28, Image.SCALE_DEFAULT)));
                 //label.setBorder(BorderFactory.createLineBorder(Color.BLACK));

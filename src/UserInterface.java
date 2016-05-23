@@ -33,7 +33,6 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
-import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.UIManager;
@@ -353,6 +352,11 @@ public class UserInterface extends JFrame {
                 MazeSolver solver = new MazeSolver();
                 List<Direction> path = solver.getBestPath(maze, player);
                 
+                // remove last step of hint so we don't cover up the key
+                if (!player.hasKey()) {
+                	path.remove(path.size()-1);
+                }
+                
                 // show the hint path - should only show the next 8 moves
                 showHint(path.subList(0, Math.min(path.size(), 8)));
             }
@@ -527,38 +531,35 @@ public class UserInterface extends JFrame {
     }
 
     private void showHint(List<Direction> path) {
-    	// split our hint into a char array
-    	// ie RRDDDR -> {'R','R','D','D','D','R'}
-    	//char[] path = hint.toCharArray();
-    	
-        Coordinate pos = player.getCurrPos();
-    	int currRow = pos.getRow();
-    	int currCol = pos.getCol();
+    	// current position of path as we create it
+        Coordinate currPos = player.getCurrPos();
+        
+        // current index of path in grid
     	int hintPosition = 0;
     	
     	for (Direction d : path) {
     		switch (d) {
 	            case UP:
-	            	currRow--;
+	            	currPos.shift(Direction.UP);
 	                break;
 	            case DOWN:
-	            	currRow++;
+	            	currPos.shift(Direction.DOWN);
 	                break;
 	            case LEFT:
-	            	currCol--;
+	            	currPos.shift(Direction.LEFT);
 	                break;
 	            case RIGHT:
-	            	currCol++;
+	            	currPos.shift(Direction.RIGHT);
 	                break;
 	            default:
 	            	// ssshh go to sleep, no tears only dreams
     		}
-    		hintPosition = ROWS * currRow + currCol;
+    		hintPosition = ROWS * currPos.getRow() + currPos.getCol();
     		
     		// get current component
         	ImagePanel withHint = (ImagePanel)grid.getComponent(hintPosition);
         	
-        	// set some sparkles :3
+        	// set some sparkles :3 ^.^
         	withHint.setForegroundIcon("res/sparkle.png");
         	withHint.repaint();
         	
@@ -908,7 +909,7 @@ public class UserInterface extends JFrame {
             grid.remove(positionIndex);   
             grid.add(labelCurr, positionIndex);
             
-            // check if this is the 2nd last tile, and if the player has key, if so, then open the door
+            // check if this is the 2nd last tile, and if the player has key. if true, then open the door
             if (currPos.getRow()==ROWS-1 && currPos.getCol()==COLS-2 && player.hasKey()) {
             	isPlayer = false;
             	icon = "res/door_open.png";
@@ -923,7 +924,7 @@ public class UserInterface extends JFrame {
                 grid.add(labelDoor, positionIndex);
             }
             
-            // old player pos
+            // get previous position on grid 
             Coordinate prevPos = player.getPrevPos();
             String prevIcon = gridIcon(ROWS, COLS, prevPos);
             int prevPosition = prevPos.getRow() * COLS + prevPos.getCol();

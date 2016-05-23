@@ -57,7 +57,7 @@ public class UserInterface extends JFrame {
     private static final String GAME_NAME = "Dungeon Escape";
     
     public static final int EASY = 10;
-    public static final int MEDIUM = 18;
+    public static final int MEDIUM = 18; 
     public static final int HARD = 25;
     
     // set difficulty to easy to begin with
@@ -113,13 +113,18 @@ public class UserInterface extends JFrame {
     }
     
     private void initStartScreen() {
-        ImagePanel holder = new ImagePanel("res/splash.jpg", null, 0, 0, false);
+    	//Pick a splash screen
+        ImagePanel holder = new ImagePanel("res/splash_ver1.png", null, 0, 0, false);
+        //ImagePanel holder = new ImagePanel("res/splash_ver2.png", null, 0, 0, false);
         holder.setLayout(new BoxLayout(holder, BoxLayout.Y_AXIS));
         
-        holder.add(Box.createVerticalStrut(200));
+        //was 200, now 285 to create space
+        holder.add(Box.createVerticalStrut(285));
         
         Font menuFont = baseFont.deriveFont(Font.BOLD, 20);
-        
+
+        /* 
+        //Don't think we need this anymore
         JLabel nameLabel = new JLabel(GAME_NAME, SwingConstants.CENTER);
         nameLabel.setPreferredSize(new Dimension(400, 80));
         nameLabel.setMaximumSize(new Dimension(400, 80));
@@ -129,8 +134,8 @@ public class UserInterface extends JFrame {
         nameLabel.setBackground(Color.GRAY);
         nameLabel.setOpaque(true);
         nameLabel.setBorder(BorderFactory.createEtchedBorder());
-        
         holder.add(nameLabel);
+        */
         
         holder.add(Box.createVerticalStrut(75));
         
@@ -217,8 +222,7 @@ public class UserInterface extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 JOptionPane.showMessageDialog(null,
                         "<html><body><p style='width: 400px;'>" +
-                        GAME_NAME + " (formerly 420 Maze It) is a Zelda-inspired maze game " +
-                        "designed by UNSW computing students.<br><br>" +
+                        GAME_NAME + " is a Zelda-inspired maze game designed by UNSW computing students.<br><br>" +
                         "<b>How to play:</b><br>" +
                         "The aim of the game is to escape the dungeon by navigating to the " +
                         "exit. All dungeons will have a single exit which is protected by a " +
@@ -554,9 +558,9 @@ public class UserInterface extends JFrame {
     		// get current component
         	ImagePanel withHint = (ImagePanel)grid.getComponent(hintPosition);
         	
-        	// give it a beautiful border
-        	// white border master race
-        	withHint.setBorder(BorderFactory.createLineBorder(Color.WHITE));
+        	// set some sparkles :3
+        	withHint.setForegroundIcon("res/sparkle.png");
+        	withHint.repaint();
         	
         	grid.remove(hintPosition);
         	grid.add(withHint, hintPosition);
@@ -836,7 +840,8 @@ public class UserInterface extends JFrame {
                 ImagePanel label2 = new ImagePanel(icon, foregroundIcon,
                         scaledHeight, scaledWidth, isForegroundVisible);
                 label2.setOpaque(true);
-                label2.repaint();
+                label2.repaint(); 
+                										//TODO remove this TODO.
                 grid.add(label2);                
             }
         }
@@ -893,8 +898,7 @@ public class UserInterface extends JFrame {
                 // reset - make Link face right by default
                 foregroundIcon = "res/link4.png";
             }
-
-          
+            
             // create new imagePanel for player's grid position
             ImagePanel labelCurr = new ImagePanel(icon, foregroundIcon, scaledHeight, scaledWidth, isPlayer);
             labelCurr.setOpaque(true);
@@ -903,6 +907,21 @@ public class UserInterface extends JFrame {
             int positionIndex = currPos.getRow() * COLS + currPos.getCol();
             grid.remove(positionIndex);   
             grid.add(labelCurr, positionIndex);
+            
+            // check if this is the 2nd last tile, and if the player has key, if so, then open the door
+            if (currPos.getRow()==ROWS-1 && currPos.getCol()==COLS-2 && player.hasKey()) {
+            	isPlayer = false;
+            	icon = "res/door_open.png";
+            	foregroundIcon = null;
+            	
+            	ImagePanel labelDoor = new ImagePanel(icon, foregroundIcon, scaledHeight, scaledWidth, isPlayer);
+                labelDoor.setOpaque(true);
+                labelDoor.repaint();
+                
+                positionIndex = (ROWS-1) * (COLS) + (COLS-1);
+                grid.remove(positionIndex);   
+                grid.add(labelDoor, positionIndex);
+            }
             
             // old player pos
             Coordinate prevPos = player.getPrevPos();
@@ -1143,13 +1162,20 @@ public class UserInterface extends JFrame {
                     icon = "tile7_2.png";
                 }
                 if (!up && left){
-                    icon = "tile7.png";
+                	icon = "door_closed.png";
+                    //icon = "tile7.png";
                 }
                 if (!up && !left) {
                     // this should never happen - end is unreachable
                     // filler tile
                     icon = "tile7.png";
                 }
+                
+                //Test if Player has Key
+            	if (player.getCurrPos().equals(maze.getFinishPos()) && player.hasKey()){
+            		icon = "door_open.png";
+            	}
+            	
                 break;
             case Tile.EMPTY:
             case Tile.ITEM:

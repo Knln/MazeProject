@@ -76,4 +76,13 @@ public class ImagePanel extends JPanel{
         }
         g2d.dispose();
     }
+    
+    public void setForegroundIcon(String foregroundIcon){
+    	try {
+			foregroundImage = ImageIO.read(new File(foregroundIcon));
+		} catch (IOException e) {
+			System.out.println("Error: " + foregroundImage + " not found");
+		}    	
+    	this.isForegroundVisible = true;    	
+    }
 }

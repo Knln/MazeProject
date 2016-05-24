@@ -582,7 +582,6 @@ public class UserInterface extends JFrame {
  		       if (tileValue == Tile.ITEM) {
  		 			isForegroundVisible = true;
  		 			foregroundIcon = "res/treasure.png";
- 		 			//foregroundIcon = "res/rupee.png";
  		       }	
  		       
  		       ImagePanel normalImage = new ImagePanel(prevIcon, foregroundIcon, scaledHeight, scaledWidth, isForegroundVisible);
@@ -1088,22 +1087,7 @@ public class UserInterface extends JFrame {
 		            grid.add(labelCurr, positionIndex);
             	}
             }
-            
-            // check if this is the 2nd last tile, and if the player has key. if true, then open the door
-            if (currPos.getRow()==ROWS-1 && currPos.getCol()==COLS-2 && player.hasKey()) {
-            	isPlayer = false;
-            	icon = "res/door_open.png";
-            	foregroundIcon = null;
-            	
-            	ImagePanel labelDoor = new ImagePanel(icon, foregroundIcon, scaledHeight, scaledWidth, isPlayer);
-                labelDoor.setOpaque(true);
-                labelDoor.repaint();
-                
-                positionIndex = (ROWS-1) * (COLS) + (COLS-1);
-                grid.remove(positionIndex);   
-                grid.add(labelDoor, positionIndex);
-            }
-            
+
             // get previous position on grid 
             Coordinate prevPos = player.getPrevPos();
             String prevIcon = gridIcon(ROWS, COLS, prevPos);
@@ -1417,14 +1401,35 @@ public class UserInterface extends JFrame {
     
                 //Give appropriate Tile
                 if (up && left){
-                    icon = "tile7_3.png";
+                	//Test if Player has Key
+                	if ((player.getCurrPos().equals(maze.getFinishPos()) && player.hasKey())) {
+                			//NOTE: Uncomment if you want door to open on tile before finish tile
+                			//|| (player.getCurrPos().getRow()==ROWS-1 && player.getCurrPos().getCol()==COLS-2 && player.hasKey())) {
+                		icon = "door_open_3.png";
+                	} else {
+                		icon = "door_closed_3.png";
+                	}
                 }
                 if (up && !left){
-                    icon = "tile7_2.png";
+                	//Test if Player has Key
+                	if ((player.getCurrPos().equals(maze.getFinishPos()) && player.hasKey())) { 
+                			//NOTE: Uncomment if you want door to open on tile before finish tile
+                			//|| (player.getCurrPos().getRow()==ROWS-2 && player.getCurrPos().getCol()==COLS-1 && player.hasKey())) {
+                    		icon = "door_open_2.png";
+                	} else {
+                		icon = "door_closed_2.png";
+                	}
                 }
                 if (!up && left){
-                	icon = "door_closed.png";
-                    //icon = "tile7.png";
+                	//Test if Player has Key
+                	if ((player.getCurrPos().equals(maze.getFinishPos()) && player.hasKey())) { 
+                			//NOTE: Uncomment if you want door to open on tile before finish tile
+                			//|| (player.getCurrPos().getRow()==ROWS-1 && player.getCurrPos().getCol()==COLS-2 && player.hasKey()) 
+                			//|| (player.getCurrPos().getRow()==ROWS-2 && player.getCurrPos().getCol()==COLS-1 && player.hasKey())) {
+                    	icon = "door_open.png";
+                	} else {
+                		icon = "door_closed.png";
+                	}
                 }
                 if (!up && !left) {
                     // this should never happen - end is unreachable
@@ -1432,11 +1437,6 @@ public class UserInterface extends JFrame {
                     icon = "tile7.png";
                 }
                 
-                //Test if Player has Key
-            	if (player.getCurrPos().equals(maze.getFinishPos()) && player.hasKey()){
-            		icon = "door_open.png";
-            	}
-            	
                 break;
             case Tile.EMPTY:
             case Tile.ITEM:

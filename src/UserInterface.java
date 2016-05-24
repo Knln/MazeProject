@@ -76,7 +76,7 @@ public class UserInterface extends JFrame {
     private int timeElapsed;
     private boolean isGameActive;
     private Maze maze;
-    private List<Coordinate> hintPath;
+    private List<Coordinate> hintPath;		// TODO: this should probably be part of the MazeSolver class?
     private Player player;
     private JLabel highScoresLabel;
     private JPanel inventoryPanel;
@@ -563,32 +563,48 @@ public class UserInterface extends JFrame {
      * Removes the hint path from the maze.
      */
     private void removeHint() {
-    	for (Coordinate hintCoordinate : hintPath) {
-    		// get tile value, color label accordingly
-            char tileValue = maze.getTileFrom(hintCoordinate).getValue();
-               		
-    		// ImagePanel setup
-            String prevIcon = gridIcon(ROWS, COLS, hintCoordinate);
-            int hintGridIndex = hintCoordinate.getRow() * COLS + hintCoordinate.getCol();
-            int scaledWidth = (WINDOW_WIDTH - RIGHT_PANEL_WIDTH) / COLS;
-            int scaledHeight = WINDOW_HEIGHT / ROWS;
-            boolean isForegroundVisible = false;
-            String foregroundIcon = null;
-            
-            // Setup if the tile was an item
-            if (tileValue == Tile.ITEM) {
-    			isForegroundVisible = true;
-    			foregroundIcon = "res/treasure.png";
-    			//foregroundIcon = "res/rupee.png";
-            }	
-            
-            ImagePanel normalImage = new ImagePanel(prevIcon, foregroundIcon, scaledHeight, scaledWidth, isForegroundVisible);
-            normalImage.setOpaque(true);
-            normalImage.repaint();
 
-            grid.remove(hintGridIndex);
-            grid.add(normalImage, hintGridIndex);
+        int scaledWidth = (WINDOW_WIDTH - RIGHT_PANEL_WIDTH) / COLS;
+        int scaledHeight = WINDOW_HEIGHT / ROWS;
+        
+    	for (Coordinate hintCoordinate : hintPath) {
+    		if (hintCoordinate.isVisibleToPlayer(player)) {
+    			// get tile value, color label accordingly
+ 		       char tileValue = maze.getTileFrom(hintCoordinate).getValue();
+ 		          		
+ 		 	   // ImagePanel setup
+ 		       String prevIcon = gridIcon(ROWS, COLS, hintCoordinate);
+ 		       int hintGridIndex = hintCoordinate.getRow() * COLS + hintCoordinate.getCol();
+ 		       String foregroundIcon = null;
+ 		       boolean isForegroundVisible = false;
+ 		       
+ 		       // Setup if the tile was an item
+ 		       if (tileValue == Tile.ITEM) {
+ 		 			isForegroundVisible = true;
+ 		 			foregroundIcon = "res/treasure.png";
+ 		 			//foregroundIcon = "res/rupee.png";
+ 		       }	
+ 		       
+ 		       ImagePanel normalImage = new ImagePanel(prevIcon, foregroundIcon, scaledHeight, scaledWidth, isForegroundVisible);
+ 		       normalImage.setOpaque(true);
+ 		       normalImage.repaint();
+
+ 		       grid.remove(hintGridIndex);
+ 		       grid.add(normalImage, hintGridIndex);
+    		} else {
+
+        		// ImagePanel setup
+                int hintGridIndex = hintCoordinate.getRow() * COLS + hintCoordinate.getCol();
+                ImagePanel label3 = new ImagePanel(null, null,
+    					scaledHeight, scaledWidth, false);
+    			label3.setOpaque(true);
+    			label3.setBackground(Color.BLACK);
+    			label3.repaint();
+    			grid.remove(hintGridIndex);
+                grid.add(label3, hintGridIndex);
+    		}
     	}
+    	
     	hintPath.clear();
     }
     
@@ -817,59 +833,30 @@ public class UserInterface extends JFrame {
         
         grid.removeAll();
 
+        // Scale the size based on number of rows and columns
+        int scaledWidth = (WINDOW_WIDTH - RIGHT_PANEL_WIDTH) / COLS;
+        int scaledHeight = WINDOW_HEIGHT / ROWS;
+          
+        // darken the maze
         for (int row = 0; row < ROWS; row++) {
             for (int col = 0; col < COLS; col++) {
-                Coordinate pos = new Coordinate(row, col);
                 
-                // get tile value, color label accordingly
-                char tileValue = maze.getTileFrom(pos).getValue();
 
-                // get the correct image for a tile
-                String icon = gridIcon(ROWS, COLS, pos);
-
-                // Scale the size based on number of rows and columns
-                int scaledWidth = (WINDOW_WIDTH - RIGHT_PANEL_WIDTH) / COLS;
-                int scaledHeight = WINDOW_HEIGHT / ROWS;
                 
-                //isPlayer is initialized to false
-                boolean isForegroundVisible = false;
-
-                //initialize foregroundIcon
-                String foregroundIcon = null;
-                
-                // check the Tile and set visibility and foregroundIcon
-                if (row == 0 && col == 0) {
-                    // start tile
-                	isForegroundVisible = true;
-                	foregroundIcon = "res/link4.png";
-                } else {
-                	switch (tileValue) {
-                		case Tile.START:
-                		case Tile.FINISH:
-                		case Tile.EMPTY:
-                		case Tile.WALL:
-                			break;
-                		case Tile.KEY:
-                			isForegroundVisible = true;
-                			foregroundIcon = "res/key.png";
-                			break;
-                		case Tile.ITEM:
-                			isForegroundVisible = true;
-                			foregroundIcon = "res/treasure.png";
-                			//foregroundIcon = "res/rupee.png";
-                            break;
-                	}
-                }
-                
-                //add imagePanel to grid
-                ImagePanel label2 = new ImagePanel(icon, foregroundIcon,
-                        scaledHeight, scaledWidth, isForegroundVisible);
-                label2.setOpaque(true);
-                label2.repaint(); 
-
-                grid.add(label2);                
+                ImagePanel label3 = new ImagePanel(null, null,
+    					scaledHeight, scaledWidth, false);
+				label3.setOpaque(true);
+				label3.setBackground(Color.BLACK);
+				label3.repaint();
+				grid.add(label3); 
             }
         }
+        
+        // light up start area
+        lightUpStartArea();
+        
+       
+        
 
         // at start - disable reset
         if (resetButton != null) {
@@ -889,6 +876,72 @@ public class UserInterface extends JFrame {
 
         // must be called to refresh the whole JFrame
         revalidate();
+    }
+    
+    /**
+     * Lights up the start area of the maze.
+     */
+    private void lightUpStartArea() {
+    	// light up the start position
+        Coordinate[] coordinates = new Coordinate[4];
+        coordinates[0] = new Coordinate(0, 0);
+        coordinates[1] = new Coordinate(0, 1);
+        coordinates[2] = new Coordinate(1, 0);
+        coordinates[3] = new Coordinate(1, 1);
+        // scale the size based on number of rows and columns
+        int scaledWidth = (WINDOW_WIDTH - RIGHT_PANEL_WIDTH) / COLS;
+        int scaledHeight = WINDOW_HEIGHT / ROWS;
+        
+        
+        for (Coordinate coordinate : coordinates) {
+        	int row = coordinate.getRow();
+        	int col = coordinate.getCol();
+        	
+        	 // get tile value, color label accordingly
+            char tileValue = maze.getTileFrom(coordinate).getValue();
+
+            // get the correct image for a tile
+            String icon = gridIcon(ROWS, COLS, coordinate);
+
+            
+            //isPlayer is initialized to false
+            boolean isForegroundVisible = false;
+
+            //initialize foregroundIcon
+            String foregroundIcon = null;
+            
+            // check the Tile and set visibility and foregroundIcon
+            if (row == 0 && col == 0) {
+                // start tile
+            	isForegroundVisible = true;
+            	foregroundIcon = "res/link4.png";
+            } else {
+            	switch (tileValue) {
+            		case Tile.START:
+            		case Tile.FINISH:
+            		case Tile.EMPTY:
+            		case Tile.WALL:
+            			break;
+            		case Tile.KEY:
+            			isForegroundVisible = true;
+            			foregroundIcon = "res/key.png";
+            			break;
+            		case Tile.ITEM:
+            			isForegroundVisible = true;
+            			foregroundIcon = "res/treasure.png";
+            			//foregroundIcon = "res/rupee.png";
+                        break;
+            	}
+            }
+    				
+            //add imagePanel to grid
+            ImagePanel label2 = new ImagePanel(icon, foregroundIcon,
+                    scaledHeight, scaledWidth, isForegroundVisible);
+            label2.setOpaque(true);
+            label2.repaint(); 
+            grid.remove(row * COLS + col);
+            grid.add(label2, row * COLS + col);
+        }
     }
 
 
@@ -937,6 +990,104 @@ public class UserInterface extends JFrame {
             int positionIndex = currPos.getRow() * COLS + currPos.getCol();
             grid.remove(positionIndex);   
             grid.add(labelCurr, positionIndex);
+            
+            
+            
+            //
+            //
+            // lighting
+            //
+            //
+            //
+            
+            // create new lit up Tile locations
+            Direction latsMove = player.getLastMove();
+            Coordinate[] toLight = new Coordinate[3];
+            int currRow = currPos.getRow();
+            int currCol = currPos.getCol();
+                        
+            if (latsMove == Direction.RIGHT) {
+                toLight[0] = new Coordinate(currRow-1, currCol+1);
+        		toLight[1] = new Coordinate(currRow, currCol+1);
+                toLight[2] = new Coordinate(currRow+1, currCol+1);
+            } else if (latsMove == Direction.LEFT) {
+                toLight[0] = new Coordinate(currRow-1, currCol-1);
+        		toLight[1] = new Coordinate(currRow, currCol-1);
+                toLight[2] = new Coordinate(currRow+1, currCol-1);
+            } else if (latsMove == Direction.UP) {
+                toLight[0] = new Coordinate(currRow-1, currCol-1);
+        		toLight[1] = new Coordinate(currRow-1, currCol);
+                toLight[2] = new Coordinate(currRow-1, currCol+1);
+            } else if (latsMove == Direction.DOWN) {
+            	toLight[0] = new Coordinate(currRow+1, currCol-1);
+        		toLight[1] = new Coordinate(currRow+1, currCol);
+                toLight[2] = new Coordinate(currRow+1, currCol+1);
+            }
+            
+            boolean isForegroundVisible;
+            for (int i = 0; i < toLight.length; i++) {
+            	if (toLight[i].getRow() >= 0 && toLight[i].getCol() >= 0 
+            			&& toLight[i].getRow() < ROWS && toLight[i].getCol() < COLS) {
+
+		            char tileValue = maze.getTileFrom(toLight[i]).getValue();
+		            // Setup if the tile was an item
+		            if (tileValue == Tile.ITEM) {
+		    			isForegroundVisible = true;
+		    			foregroundIcon = "res/treasure.png";
+		    			//foregroundIcon = "res/rupee.png";
+		            } else if (tileValue == Tile.KEY) {
+		    			isForegroundVisible = true;
+		            	foregroundIcon = "res/key.png";
+		            } else {
+		            	foregroundIcon = null;
+		            }
+		            
+	            	icon = gridIcon(ROWS, COLS, toLight[i]);
+		            labelCurr = new ImagePanel(icon, foregroundIcon, scaledHeight, scaledWidth, isPlayer);
+		            labelCurr.setOpaque(true);
+		            labelCurr.repaint(); 
+		
+		            positionIndex = toLight[i].getRow() * COLS + toLight[i].getCol();
+		            grid.remove(positionIndex);   
+		            grid.add(labelCurr, positionIndex);
+            	}
+            }
+            
+            // create new dark Tile locations
+            Coordinate[] toDark = new Coordinate[3];
+            
+            if (latsMove == Direction.RIGHT) {
+            	toDark[0] = new Coordinate(currRow-1, currCol-2);
+            	toDark[1] = new Coordinate(currRow, currCol-2);
+        		toDark[2] = new Coordinate(currRow+1, currCol-2);
+            } else if (latsMove == Direction.LEFT) {
+            	toDark[0] = new Coordinate(currRow-1, currCol+2);
+            	toDark[1] = new Coordinate(currRow, currCol+2);
+        		toDark[2] = new Coordinate(currRow+1, currCol+2);
+            } else if (latsMove == Direction.UP) {
+            	toDark[0] = new Coordinate(currRow+2, currCol-1);
+            	toDark[1] = new Coordinate(currRow+2, currCol);
+        		toDark[2] = new Coordinate(currRow+2, currCol+1);
+            } else if (latsMove == Direction.DOWN) {
+            	toDark[0] = new Coordinate(currRow-2, currCol-1);
+            	toDark[1] = new Coordinate(currRow-2, currCol);
+        		toDark[2] = new Coordinate(currRow-2, currCol+1);
+            }
+            
+            for (int i = 0; i < toDark.length; i++) {
+            	if (toDark[i].getRow() >= 0 && toDark[i].getCol() >= 0
+            			&& toDark[i].getRow() < ROWS && toDark[i].getCol() < COLS) {
+	            	labelCurr = new ImagePanel(null, foregroundIcon,
+	                        scaledHeight, scaledWidth, false);
+	            	labelCurr.setOpaque(true);
+	            	labelCurr.setBackground(Color.BLACK);
+	            	labelCurr.repaint();
+	                	            
+		            positionIndex = toDark[i].getRow() * COLS + toDark[i].getCol();
+		            grid.remove(positionIndex);   
+		            grid.add(labelCurr, positionIndex);
+            	}
+            }
             
             // check if this is the 2nd last tile, and if the player has key. if true, then open the door
             if (currPos.getRow()==ROWS-1 && currPos.getCol()==COLS-2 && player.hasKey()) {
@@ -1068,64 +1219,148 @@ public class UserInterface extends JFrame {
             
             // reset items if we are resetting
             if (isReset) {
-            	//variable for icon
-                boolean isForegroundVisible = false;
-                //initialize foregroundIcon
+            	// variables for icon
+                isForegroundVisible = false;
                 foregroundIcon = null;
-                //check the Tile and set visibility and foregroundIcon
     			isForegroundVisible = true;
             	
-            	Coordinate[] items = maze.getItemCoords();
-            	
-            	for (int i = 0; i < items.length; i++) {
-            	    Coordinate itemPos = items[i];
-            		if (itemPos.getRow() >= 0) {            			
-            			//set tile as an item again, score purposes etc
-            			maze.setTileItem(itemPos);
-            			
-            			//get correct icon for the item
-                    	icon = gridIcon(ROWS, COLS, itemPos);
-
-            			foregroundIcon = "res/treasure.png";
-                        
-                        //add imagePanel to grid
-                        ImagePanel square = new ImagePanel(icon, foregroundIcon,
-                                scaledHeight, scaledWidth, isForegroundVisible);
-                        square.setOpaque(true);
-                        square.repaint();
-                        
-                        int itemIndex = itemPos.getRow() * COLS + itemPos.getCol();
-                        grid.remove(itemIndex);
-                        grid.add(square, itemIndex); 
+            	for (Coordinate itemCoord : maze.getItemCoords()) {
+            		int row = itemCoord.getRow();
+            		int col = itemCoord.getCol();
+            		
+            		// sanity check, as only 1/4 items will be valid on easy mode
+            		if (row > 0) {
+	            		if (itemCoord.isInStartArea()) {
+	            			// set to lit-up
+	            			
+	            			//get correct icon for the item
+	                    	icon = gridIcon(ROWS, COLS, itemCoord);
+	
+	            			foregroundIcon = "res/treasure.png";
+	                        
+	                        //add imagePanel to grid
+	                        ImagePanel newPanel = new ImagePanel(icon, foregroundIcon,
+	                                scaledHeight, scaledWidth, isForegroundVisible);
+	                        newPanel.setOpaque(true);
+	                        newPanel.repaint();
+	                        
+	                        int itemIndex = row * COLS + col;
+	                        grid.remove(itemIndex);
+	                        grid.add(newPanel, itemIndex); 
+	            		} else {
+	            			// set to darkness
+	            			
+	        	        	ImagePanel newPanel = new ImagePanel(null, null,
+	        	                    scaledHeight, scaledWidth, false);
+	        	        	newPanel.setOpaque(true);
+	        	        	newPanel.setBackground(Color.BLACK);
+	        	        	newPanel.repaint();
+	        	            	            
+	        	        	int itemIndex = row * COLS + col;
+	        	            grid.remove(itemIndex);   
+	        	            grid.add(newPanel, itemIndex);
+	            		}
+	           			
+						//set tile as an item again, score purposes etc
+						maze.setTileItem(itemCoord);
             		}
             	}
+            	
             	// reset key only if required
             	if (player.hasKey()) {
             	    Coordinate keyPos = maze.getKeyPos();
-            	    int keyIndex = keyPos.getRow() * COLS + keyPos.getCol();
+            		int row = keyPos.getRow();
+            		int col = keyPos.getCol();
             	    
+            	    if (keyPos.isInStartArea()) {
+            	    	// set to lit-up
+            	    	
+	            	    int keyIndex = keyPos.getRow() * COLS + keyPos.getCol();
+	            	    
+	            		
+	            		//create Key component and re-add
+		            	icon = gridIcon(ROWS, COLS, keyPos);
+		            	
+		            	foregroundIcon = "res/key.png";
+		            	
+		            	ImagePanel square = new ImagePanel(icon, foregroundIcon, 
+		            			scaledHeight, scaledWidth, isForegroundVisible);
+		            	square.setOpaque(true);
+		            	square.repaint(); 
+		            	
+		            	grid.remove(keyIndex);
+		            	grid.add(square, keyIndex);
+		            	
+		            	// lastly take the key away
+		            	player.setHasKey(false);
+            	    } else {
+            	    	// set to darkness
+            			
+        	        	ImagePanel newPanel = new ImagePanel(null, null,
+        	                    scaledHeight, scaledWidth, false);
+        	        	newPanel.setOpaque(true);
+        	        	newPanel.setBackground(Color.BLACK);
+        	        	newPanel.repaint();
+        	            	            
+        	        	int itemIndex = row * COLS + col;
+        	            grid.remove(itemIndex);   
+        	            grid.add(newPanel, itemIndex);
+            	    }
+
 	            	//set tile as a key again, score purposes etc
             		maze.setTileKey(maze.getKeyPos());
-            		
-            		//create Key component and re-add
-	            	icon = gridIcon(ROWS, COLS, keyPos);
-	            	
-	            	foregroundIcon = "res/key.png";
-	            	
-	            	ImagePanel square = new ImagePanel(icon, foregroundIcon, 
-	            			scaledHeight, scaledWidth, isForegroundVisible);
-	            	square.setOpaque(true);
-	            	square.repaint(); 
-	            	
-	            	grid.remove(keyIndex);
-	            	grid.add(square, keyIndex);
-	            	
-	            	// lastly take the key away
-	            	player.setHasKey(false);
             	}
+            	
+            	// darken previous area surrounding the player
+            	darkenPreviousArea();
+            	
+                // light up start area
+                lightUpStartArea();
             	
             }
         }
+    }
+    
+    /**
+     * Darken the area the player was in prior to pressing reset.
+     */
+    private void darkenPreviousArea() {
+    	Coordinate prevPos = player.getPrevPos();
+    	int row = prevPos.getRow();
+    	int col = prevPos.getCol();
+    	
+    	Coordinate[] toDarken = new Coordinate[9];
+    	toDarken[0] = new Coordinate(row-1, col-1);
+		toDarken[1] = new Coordinate(row-1, col);
+		toDarken[2] = new Coordinate(row-1, col+1);
+    	toDarken[3] = new Coordinate(row, col-1);
+		toDarken[4] = new Coordinate(row, col);
+		toDarken[5] = new Coordinate(row, col+1);
+    	toDarken[6] = new Coordinate(row+1, col-1);
+		toDarken[7] = new Coordinate(row+1, col);
+		toDarken[8] = new Coordinate(row+1, col+1);
+		
+        // scale the size based on number of rows and columns
+        int scaledWidth = (WINDOW_WIDTH - RIGHT_PANEL_WIDTH) / COLS;
+        int scaledHeight = WINDOW_HEIGHT / ROWS;
+		
+		for (Coordinate coordinate : toDarken) {
+			row = coordinate.getRow();
+			col = coordinate.getCol();
+			if (row >= 0 && row < ROWS && col >= 0 && col < COLS) {
+	        	ImagePanel labelCurr = new ImagePanel(null, null,
+	                    scaledHeight, scaledWidth, false);
+	        	labelCurr.setOpaque(true);
+	        	labelCurr.setBackground(Color.BLACK);
+	        	labelCurr.repaint();
+	            	            
+	            int positionIndex = row * COLS + col;
+	            grid.remove(positionIndex);   
+	            grid.add(labelCurr, positionIndex);
+			}
+		}
+		
+		
     }
 
     private String gridIcon(int rows, int cols, Coordinate pos) {

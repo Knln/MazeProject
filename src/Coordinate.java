@@ -23,6 +23,43 @@ public class Coordinate {
         this.col = col;
     }
 
+    /**
+     * Checks if this coordinate is in the start area.
+     * Start area is defined as the top left 4 blocks of the maze.
+     * 
+     * @return boolean
+     */
+    public boolean isInStartArea() {
+    	if (row != 0 && row != 1) {
+    		return false;
+    	}
+    	if (col != 0 && col != 1) {
+    		return false;
+    	}
+    	return true;
+    }
+    
+    /**
+     * Checks if this Coordinate is visible to the given Player.
+     * Visible is defined as any Coordinate directly surrounding the Player.
+     * 
+     * @param  p		The player to be used to check visibility for.
+     * @return boolean
+     */
+   
+    public boolean isVisibleToPlayer(Player p) {
+    	int playerRow = p.getCurrPos().getRow();
+    	int playerCol = p.getCurrPos().getCol();
+    	
+    	if (row != playerRow - 1 && row != playerRow && row != playerRow + 1) {
+    		return false;
+    	}
+    	if (col != playerCol - 1 && col != playerCol && col != playerCol + 1) {
+    		return false;
+    	}
+    	return true;
+    }
+    
     @Override
     public boolean equals(Object o) {
         if (o instanceof Coordinate) {

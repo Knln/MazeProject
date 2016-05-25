@@ -229,7 +229,7 @@ public class Maze {
      * @param col - Column of the tile to set
      */
     public void setTileItem(Coordinate pos) {
-        tiles[pos.getRow()][pos.getCol()] = new Tile(Tile.ITEM, 200);
+        tiles[pos.getRow()][pos.getCol()] = new Tile(Tile.ITEM, 1000);
     }
     
     /**

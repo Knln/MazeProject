@@ -41,7 +41,7 @@ public class MazeSolver {
      * @return A list of directions to get from the specified start to the destination.
      *  Returns null if there is no possible path
      */
-    private List<Direction> navigate(Maze maze, Coordinate position, Coordinate destination) {
+    public List<Direction> navigate(Maze maze, Coordinate position, Coordinate destination) {
         Hashtable<Coordinate, Boolean> visited = new Hashtable<Coordinate, Boolean>();
         PriorityQueue<State> queue = new PriorityQueue<State>();
         

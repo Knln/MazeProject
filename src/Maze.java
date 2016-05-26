@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Random;
 import java.util.Stack;
 
@@ -79,70 +80,69 @@ public class Maze {
     
     public void recursiveExcavation(int x, int y){
         Stack<Coordinate> visited = new Stack<Coordinate>();
-        ArrayList<Integer> randomArrayList = null;
+        List<Direction> randomList = null;
         
         visited.push(new Coordinate(x, y));
         
         while (!visited.isEmpty()){
-            randomArrayList = getRandomArray();
+            randomList = getRandomArray();
             int x_init = x;
             int y_init = y;
             
-            for (Integer i: randomArrayList){
-                //Up Direction
-                if(i == 0){
-                    if(x-2 < 0 || tiles[x-2][y].getValue() == Tile.EMPTY){
-                        continue;
-                    }
+            for (Direction d: randomList){
+                switch (d) {
+                    case UP:
+                        if(x-2 < 0 || tiles[x-2][y].getValue() == Tile.EMPTY){
+                            continue;
+                        }
+                        
+                        if (tiles[x-2][y].getValue() != Tile.EMPTY){
+                            tiles[x-2][y].setValue(Tile.EMPTY);
+                            tiles[x-1][y].setValue(Tile.EMPTY);
+                            visited.push(new Coordinate(x-2, y));
+                            x = x-2;
+                            break;
+                        }
+                        break;
                     
-                    if (tiles[x-2][y].getValue() != Tile.EMPTY){
-                        tiles[x-2][y].setValue(Tile.EMPTY);
-                        tiles[x-1][y].setValue(Tile.EMPTY);
-                        visited.push(new Coordinate(x-2, y));
-                        x = x-2;
+                    case DOWN:
+                        if(x+2 >= ROWS || tiles[x+2][y].getValue() == Tile.EMPTY){
+                            continue;
+                        } 
+                        if(tiles[x+2][y].getValue() != Tile.EMPTY){
+                            tiles[x+2][y].setValue(Tile.EMPTY);
+                            tiles[x+1][y].setValue(Tile.EMPTY);
+                            visited.push(new Coordinate(x+2, y));
+                            x = x+2;
+                            break;
+                        }
                         break;
-                    }
-                }
                 
-                //Down Direction
-                if(i == 1 ){
-                    if(x+2 >= ROWS || tiles[x+2][y].getValue() == Tile.EMPTY){
-                        continue;
-                    } 
-                    if(tiles[x+2][y].getValue() != Tile.EMPTY){
-                        tiles[x+2][y].setValue(Tile.EMPTY);
-                        tiles[x+1][y].setValue(Tile.EMPTY);
-                        visited.push(new Coordinate(x+2, y));
-                        x = x+2;
+                    case LEFT:
+                        if(y-2 < 0 || tiles[x][y-2].getValue() == Tile.EMPTY){
+                            continue;
+                        }
+                        if(tiles[x][y-2].getValue() != Tile.EMPTY){
+                            tiles[x][y-2].setValue(Tile.EMPTY);
+                            tiles[x][y-1].setValue(Tile.EMPTY);
+                            visited.push(new Coordinate(x, y-2));
+                            y=y-2;
+                            break;
+                        }
                         break;
-                    }
-                }
-                
-                //Left Direction
-                if(i == 2){
-                    if(y-2 < 0 || tiles[x][y-2].getValue() == Tile.EMPTY){
-                        continue;
-                    } 
-                    if(tiles[x][y-2].getValue() != Tile.EMPTY){
-                        tiles[x][y-2].setValue(Tile.EMPTY);
-                        tiles[x][y-1].setValue(Tile.EMPTY);
-                        visited.push(new Coordinate(x, y-2));
-                        y=y-2;
+
+                    case RIGHT:
+                        if(y+2 >= COLS || tiles[x][y+2].getValue() == Tile.EMPTY){
+                            continue;
+                        }
+                        if(tiles[x][y+2].getValue() != Tile.EMPTY){
+                            tiles[x][y+2].setValue(Tile.EMPTY);
+                            tiles[x][y+1].setValue(Tile.EMPTY);
+                            visited.push(new Coordinate(x,y+2));
+                            y=y+2;
+                            break;
+                        }
                         break;
-                    }
-                }
-                //Right Direction
-                if(i == 3){
-                    if(y+2 >= COLS || tiles[x][y+2].getValue() == Tile.EMPTY){
-                        continue;
-                    } 
-                    if(tiles[x][y+2].getValue() != Tile.EMPTY){
-                        tiles[x][y+2].setValue(Tile.EMPTY);
-                        tiles[x][y+1].setValue(Tile.EMPTY);
-                        visited.push(new Coordinate(x,y+2));
-                        y=y+2;
-                        break;
-                    }
                 }
             }
             
@@ -153,21 +153,20 @@ public class Maze {
                 y = temp.getCol();
             }
             
-            randomArrayList.clear();
+            randomList.clear();
         }
     }
     
-    public ArrayList<Integer> getRandomArray(){
-        ArrayList<Integer> randomArrayList = new ArrayList<Integer>();
-        //Random rand = new Random();
+    public List<Direction> getRandomArray(){
+        List<Direction> list = new ArrayList<Direction>();
         
-        for (int i = 0; i < 4; i++) {
-            //randomArrayList.add(rand.nextInt(4));
-            randomArrayList.add(i);
-        }
-        Collections.shuffle(randomArrayList);
+        list.add(Direction.UP);
+        list.add(Direction.DOWN);
+        list.add(Direction.LEFT);
+        list.add(Direction.RIGHT);
         
-        return randomArrayList;
+        Collections.shuffle(list);
+        return list;
     }
 
     /**

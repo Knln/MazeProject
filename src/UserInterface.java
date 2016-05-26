@@ -80,7 +80,7 @@ public class UserInterface extends JFrame {
     private boolean isDarknessMode;
     private boolean isGameActive;
     private Maze maze;
-    private List<Coordinate> hintPath;		// TODO: this should probably be part of the MazeSolver class?
+    private List<Coordinate> hintPath;
     private Player player;
     private JLabel highScoresLabel;
     private JPanel inventoryPanel;
@@ -480,19 +480,19 @@ public class UserInterface extends JFrame {
         newGamePanel.add(difficultyBox);
         newGamePanel.add(Box.createVerticalStrut(10));
 
-        JCheckBox checkDark = new JCheckBox("Darkness mode");
+        final JCheckBox checkDark = new JCheckBox("Darkness mode");
         checkDark.setFont(baseFont);
         checkDark.setSelected(isDarknessMode);
         checkDark.setAlignmentX(CENTER_ALIGNMENT);
         checkDark.setToolTipText("The dungeon will be enshrouded in darkness! You'll only"
                 + " be able to see in a 3x3 square around you");
-        checkDark.addActionListener(new ActionListener() {
+        /*checkDark.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent arg0) {
                 AbstractButton b = (AbstractButton) arg0.getSource();
                 isDarknessMode = b.getModel().isSelected();
             }
-        });
+        });*/
         newGamePanel.add(checkDark);
         newGamePanel.add(Box.createVerticalGlue());
 
@@ -505,6 +505,7 @@ public class UserInterface extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 ROWS = difficulty;
                 COLS = difficulty;
+                isDarknessMode = checkDark.isSelected();
                 populateGrid();
                 resetTimer(timerLabel);
             }
@@ -739,18 +740,21 @@ public class UserInterface extends JFrame {
         Collections.sort(scores);
 
         // format scores into html so they can be displayed in a JLabel
+        // shitty HTML table to display scores
         StringBuilder output = new StringBuilder();
-        output.append("<html>");
+        output.append("<html><table cellpadding='1' cellspacing='0'>");
+        
         // only get the top n scores
         int count = 0;
         for (Score sc : scores) {
-            output.append("<b>" + sc.getScore() + "</b> " + sc.getName() + "<br>");
+            output.append(String.format("<tr><td><b>%5d&nbsp;&nbsp;</b></td><td>%s</td></tr>",
+                    sc.getScore(), sc.getName()));
             count++;
             if (count == num) {
                 break;
             }
         }
-        output.append("</html>");
+        output.append("</table></html>");
         return output.toString();
     }
 

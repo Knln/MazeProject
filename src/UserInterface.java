@@ -67,6 +67,7 @@ public class UserInterface extends JFrame {
     private JPanel parent;
     private JLabel movesLabel;
     private JLabel scoreLabel;
+    private JLabel goalLabel;
     private JPanel grid;
     private JButton resetButton;
     private JButton hintButton;
@@ -314,8 +315,8 @@ public class UserInterface extends JFrame {
         currentGamePanel.setLayout(new BoxLayout(currentGamePanel, BoxLayout.Y_AXIS));
         currentGamePanel.setAlignmentX(CENTER_ALIGNMENT);
 
-        currentGamePanel.setPreferredSize(new Dimension(RIGHT_PANEL_WIDTH, 230));
-        currentGamePanel.setMaximumSize(new Dimension(RIGHT_PANEL_WIDTH, 230));
+        currentGamePanel.setPreferredSize(new Dimension(RIGHT_PANEL_WIDTH, 270));
+        currentGamePanel.setMaximumSize(new Dimension(RIGHT_PANEL_WIDTH, 270));
         TitledBorder currentBorder = BorderFactory.createTitledBorder("Current Maze");
         currentBorder.setTitleFont(baseFont.deriveFont(Font.BOLD));
         currentBorder.setTitleJustification(TitledBorder.CENTER);
@@ -345,9 +346,13 @@ public class UserInterface extends JFrame {
         scoreLabel.setFont(baseFont);
         infoPanel.add(scoreLabel);
         infoPanel.add(Box.createVerticalStrut(6));
+        
+        goalLabel = new JLabel("Current goal: Find the key");
+        goalLabel.setFont(baseFont);
+        infoPanel.add(goalLabel);
 
         currentGamePanel.add(infoPanel);
-        currentGamePanel.add(Box.createVerticalStrut(6));
+        currentGamePanel.add(Box.createVerticalStrut(10));
 
         // hint and reset buttons
         JPanel hintResetPanel = new JPanel();
@@ -397,7 +402,7 @@ public class UserInterface extends JFrame {
         hintResetPanel.add(resetButton);
 
         currentGamePanel.add(hintResetPanel);
-
+        
         JLabel warningLabel = new JLabel("<html><body><p style='width: " + (RIGHT_PANEL_WIDTH - 100) + "px'>"
                 + "Hints cost 50 points<br>"
                 + "Resets cost 50 points"
@@ -486,13 +491,6 @@ public class UserInterface extends JFrame {
         checkDark.setAlignmentX(CENTER_ALIGNMENT);
         checkDark.setToolTipText("The dungeon will be enshrouded in darkness! You'll only"
                 + " be able to see in a 3x3 square around you");
-        /*checkDark.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent arg0) {
-                AbstractButton b = (AbstractButton) arg0.getSource();
-                isDarknessMode = b.getModel().isSelected();
-            }
-        });*/
         newGamePanel.add(checkDark);
         newGamePanel.add(Box.createVerticalGlue());
 
@@ -519,8 +517,8 @@ public class UserInterface extends JFrame {
         JPanel highScoresPanel = new JPanel();
         highScoresPanel.setLayout(new BoxLayout(highScoresPanel, BoxLayout.Y_AXIS));
         highScoresPanel.setAlignmentX(CENTER_ALIGNMENT);
-        highScoresPanel.setPreferredSize(new Dimension(RIGHT_PANEL_WIDTH, 200));
-        highScoresPanel.setMaximumSize(new Dimension(RIGHT_PANEL_WIDTH, 200));
+        highScoresPanel.setPreferredSize(new Dimension(RIGHT_PANEL_WIDTH, 180));
+        highScoresPanel.setMaximumSize(new Dimension(RIGHT_PANEL_WIDTH, 180));
         TitledBorder highScoresBorder = BorderFactory.createTitledBorder("High Scores");
         highScoresBorder.setTitleFont(baseFont.deriveFont(Font.BOLD));
         highScoresBorder.setTitleJustification(TitledBorder.CENTER);
@@ -533,7 +531,7 @@ public class UserInterface extends JFrame {
 
         rhs.add(highScoresPanel);
 
-        rhs.add(Box.createVerticalStrut(15));
+        rhs.add(Box.createVerticalStrut(10));
 
         // quick main menu button
         JButton menuButton = new JButton("Main Menu");
@@ -986,6 +984,9 @@ public class UserInterface extends JFrame {
         if (scoreLabel != null) {
             scoreLabel.setText("Score: " + score);
         }
+        if (goalLabel != null) {
+            goalLabel.setText("Current goal: Find the key");
+        }
 
         // must be called to refresh the whole JFrame
         revalidate();
@@ -1259,6 +1260,9 @@ public class UserInterface extends JFrame {
                 // add the key to their inventory
                 JLabel label = new JLabel(new ImageIcon(new ImageIcon("res/key_inven.png").getImage()
                         .getScaledInstance(28, 28, Image.SCALE_DEFAULT)));
+                
+                // update goal
+                goalLabel.setText("Current goal: Go to the finish!");
 
                 inventoryPanel.add(label);
                 inventoryPanel.add(Box.createHorizontalStrut(10));
@@ -1346,6 +1350,8 @@ public class UserInterface extends JFrame {
 
                         grid.remove(keyIndex);
                         grid.add(square, keyIndex);
+                        
+                        goalLabel.setText("Current goal: Find the key");
 
                         // lastly take the key away
                         player.setHasKey(false);

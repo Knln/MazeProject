@@ -64,7 +64,42 @@ public class Maze {
             case UserInterface.HARD: itemCount = 3; break;
         }
         
-        //Needs to be implemented and changed properly if time permits. Doing this tomorrow
+				//Option 1: Checks for dead ends from bottom left hand corner sweeping left to right up to the top
+        /*for (int i = 0; i < itemCount; i++) {
+            int itemRow = 0;
+            int itemCol = 0;
+            for (int j = 0; j < rows; j++) {
+                for (int k = 0; k < cols; k++) {
+                    if(checkDeadEnd(tiles, j, k)){
+                        //Finding the chest gives 3000 points
+                    	itemRow = j;
+                    	itemCol = k;
+                        tiles[itemRow][itemCol] = new Tile(Tile.ITEM, 3000); 
+                        items[i] = new Coordinate(itemRow, itemCol);
+                        break;
+                    }
+                }
+                if((itemRow+itemCol) != 0){
+                	break;
+                }
+            }
+            if((itemRow+itemCol) == 0){
+            	itemRow = rand.nextInt(ROWS - 1);
+            	itemCol = rand.nextInt(COLS - 1);
+            	while (tiles[itemRow][itemCol].getValue() != Tile.EMPTY) {
+            		itemRow = rand.nextInt(ROWS - 1);
+            		itemCol = rand.nextInt(COLS - 1);
+            	}
+            	//Finding the chest gives 3000 points
+            	tiles[itemRow][itemCol] = new Tile(Tile.ITEM, 3000); 
+            	items[i] = new Coordinate(itemRow, itemCol);
+            }
+        }*/
+			
+        //Option 2: Generated randomly from dead ends. It just tries 100000 times to look for dead ends and if it doesn't
+				//It gives up and allocates it randomly
+				//More randomness than former
+				//I like this option since it nearly always generates a perfect result.
         for (int i = 0; i < itemCount; i++) {
         	//ArrayList<Coordinate> Visited = new ArrayList<Coordinate>();
             int itemRow = rand.nextInt(ROWS - 1);
@@ -72,7 +107,7 @@ public class Maze {
             int DeadEndCount = 0;
             while (!checkDeadEnd(tiles, itemRow, itemCol)) {
             	DeadEndCount++;
-            	if(DeadEndCount > 1000000){
+            	if(DeadEndCount > 100000){
                     if(tiles[itemRow][itemCol].getValue() != Tile.EMPTY){
                     	break;
                     }
@@ -103,7 +138,9 @@ public class Maze {
     		if (itemCol == COLS-1) {
     			if(tiles[itemRow+1][itemCol].getValue() == Tile.WALL || tiles[itemRow][itemCol-1].getValue() == Tile.WALL){
     				return true;
-    			}
+    			} else {
+						return false;
+					}
     		}
     		if (tiles[itemRow][itemCol-1].getValue() == Tile.WALL 
     	    	    	&& tiles[itemRow][itemCol+1].getValue() == Tile.WALL){
@@ -124,7 +161,9 @@ public class Maze {
     		if (itemCol == 0) {
     			if (tiles[itemRow-1][itemCol].getValue() == Tile.WALL || tiles[itemRow][itemCol+1].getValue() == Tile.WALL){
     				return true;
-    			}
+    			} else {
+						return false;
+					}
     		}
     		if (tiles[itemRow][itemCol-1].getValue() == Tile.WALL 
     	    	    	&& tiles[itemRow][itemCol+1].getValue() == Tile.WALL){

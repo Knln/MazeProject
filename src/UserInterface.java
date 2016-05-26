@@ -584,12 +584,12 @@ public class UserInterface extends JFrame {
                     currPos.shift(Direction.RIGHT);
                     break;
                 default:
-                    // ssshh go to sleep, no tears only dreams
+                    // ssshh go to sleep, no tears only dreams. lel
             }
             hintPosition = ROWS * currPos.getRow() + currPos.getCol();
 
             // get current component
-            ImagePanel withHint = (ImagePanel)grid.getComponent(hintPosition);
+            ImagePanel withHint = (ImagePanel) grid.getComponent(hintPosition);
 
             // set some sparkles :3 ^.^
             withHint.setForegroundIcon("res/sparkle.png");

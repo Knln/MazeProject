@@ -1,3 +1,9 @@
+/**
+ * 
+ * Coordinates of the tiles of the maze
+ *
+ */
+
 public class Coordinate {
     private int row;
     private int col;

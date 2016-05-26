@@ -1,10 +1,7 @@
 import java.util.List;
 
-import org.junit.Test;
-
 public class SolverTest {
 
-    @Test
     public void test() {
         int size = 10;
         Maze maze = new Maze(size, size);

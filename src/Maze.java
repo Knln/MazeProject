@@ -6,7 +6,10 @@ import java.util.Stack;
 
 /**
  * A randomly generated maze populated with an assortment of tiles
+ * Has a key placed in the middle of the maze with the start and end tile at 0,0 and MAX(Length),MAX(Width)
+ * Has chests placed randomly at a traversable square in the maze
  */
+
 public class Maze {
     private Tile[][] tiles;
     private int ROWS;
@@ -14,7 +17,6 @@ public class Maze {
     
     private Coordinate finishPos;
     private Coordinate keyPos;
-    
     private Coordinate[] items;
 
     /**
@@ -59,17 +61,27 @@ public class Maze {
         switch (ROWS) {
             case UserInterface.EASY: itemCount = 1; break;
             case UserInterface.MEDIUM: itemCount = 2; break;
-            case UserInterface.HARD: itemCount = 4; break;
+            case UserInterface.HARD: itemCount = 3; break;
         }
         
+        //Needs to be implemented and changed properly if time permits. Doing this tomorrow
         for (int i = 0; i < itemCount; i++) {
+        	//ArrayList<Coordinate> Visited = new ArrayList<Coordinate>();
             int itemRow = rand.nextInt(ROWS - 1);
             int itemCol = rand.nextInt(COLS - 1);
-            while (tiles[itemRow][itemCol].getValue() != Tile.EMPTY) {
+            int DeadEndCount = 0;
+            while (!checkDeadEnd(tiles, itemRow, itemCol)) {
+            	DeadEndCount++;
+            	if(DeadEndCount > 1000000){
+                    if(tiles[itemRow][itemCol].getValue() != Tile.EMPTY){
+                    	break;
+                    }
+            	}
                 itemRow = rand.nextInt(ROWS - 1);
                 itemCol = rand.nextInt(COLS - 1);
             }
-            tiles[itemRow][itemCol] = new Tile(Tile.ITEM, 1000);
+            //Finding the chest gives 3000 points
+            tiles[itemRow][itemCol] = new Tile(Tile.ITEM, 3000); 
             items[i] = new Coordinate(itemRow, itemCol);
         }
         
@@ -78,6 +90,114 @@ public class Maze {
         }
     }
     
+    //Some horrendous code incoming
+    //Checks each case for dead ends
+    private boolean checkDeadEnd (Tile[][] tiles, int itemRow, int itemCol) {
+    	
+        if(tiles[itemRow][itemCol].getValue() != Tile.EMPTY){
+        	return false;
+        }
+        
+        //Checks case for the 0th row
+    	if (itemRow == 0) {
+    		if (itemCol == COLS-1) {
+    			if(tiles[itemRow+1][itemCol].getValue() == Tile.WALL || tiles[itemRow][itemCol-1].getValue() == Tile.WALL){
+    				return true;
+    			}
+    		}
+    		if (tiles[itemRow][itemCol-1].getValue() == Tile.WALL 
+    	    	    	&& tiles[itemRow][itemCol+1].getValue() == Tile.WALL){
+    	    			return true;
+    	    }
+    		if (tiles[itemRow+1][itemCol].getValue() == Tile.WALL 
+    	    	    	&& tiles[itemRow][itemCol+1].getValue() == Tile.WALL){
+    	    			return true;
+    	    }
+    		if (tiles[itemRow+1][itemCol].getValue() == Tile.WALL 
+    	    	    	&& tiles[itemRow][itemCol-1].getValue() == Tile.WALL){
+    	    			return true;
+    	    }
+    		return false;
+    		
+    	//Checks case for the last row
+    	} else if (itemRow == ROWS-1) {
+    		if (itemCol == 0) {
+    			if (tiles[itemRow-1][itemCol].getValue() == Tile.WALL || tiles[itemRow][itemCol+1].getValue() == Tile.WALL){
+    				return true;
+    			}
+    		}
+    		if (tiles[itemRow][itemCol-1].getValue() == Tile.WALL 
+    	    	    	&& tiles[itemRow][itemCol+1].getValue() == Tile.WALL){
+    	    			return true;
+    	    }
+    		if (tiles[itemRow-1][itemCol].getValue() == Tile.WALL 
+    	    	    	&& tiles[itemRow][itemCol+1].getValue() == Tile.WALL){
+    	    			return true;
+    	    }
+    		if (tiles[itemRow-1][itemCol].getValue() == Tile.WALL 
+    	    	    	&& tiles[itemRow][itemCol-1].getValue() == Tile.WALL){
+    	    			return true;
+    	    }
+    		return false;
+    	
+    	//Checks case for the 0th column
+    	} else if (itemCol == 0) {
+    		if (tiles[itemRow+1][itemCol].getValue() == Tile.WALL 
+    	    	&& tiles[itemRow-1][itemCol].getValue() == Tile.WALL){
+    			return true;
+    		}
+    		if (tiles[itemRow+1][itemCol].getValue() == Tile.WALL 
+        	    	&& tiles[itemRow][itemCol+1].getValue() == Tile.WALL){
+        			return true;
+        	}
+    		if (tiles[itemRow-1][itemCol].getValue() == Tile.WALL 
+        	    	&& tiles[itemRow][itemCol+1].getValue() == Tile.WALL){
+        			return true;
+        	}
+    		return false;
+    	
+    	//Checks case for the last column
+    	} else if (itemCol == COLS-1){
+       		if (tiles[itemRow+1][itemCol].getValue() == Tile.WALL 
+        	    	&& tiles[itemRow-1][itemCol].getValue() == Tile.WALL){
+        			return true;
+        	}
+        	if (tiles[itemRow+1][itemCol].getValue() == Tile.WALL 
+            	    && tiles[itemRow][itemCol-1].getValue() == Tile.WALL){
+            		return true;
+            }
+        	if (tiles[itemRow-1][itemCol].getValue() == Tile.WALL 
+            	    && tiles[itemRow][itemCol-1].getValue() == Tile.WALL){
+            		return true;
+            }
+        	return false;
+    	}
+    	
+    	//Checks cases for which there is a dead end in the middle of the maze
+    	if( tiles[itemRow+1][itemCol].getValue() == Tile.WALL 
+    		&& tiles[itemRow-1][itemCol].getValue() == Tile.WALL
+    		&& tiles[itemRow][itemCol+1].getValue() == Tile.WALL){
+    		return true;
+    	}  	
+    	if(tiles[itemRow+1][itemCol].getValue() == Tile.WALL 
+        		&& tiles[itemRow-1][itemCol].getValue() == Tile.WALL
+        		&& tiles[itemRow][itemCol-1].getValue() == Tile.WALL){
+        		return true;
+        }      	
+    	if(tiles[itemRow+1][itemCol].getValue() == Tile.WALL 
+        		&& tiles[itemRow][itemCol+1].getValue() == Tile.WALL
+        		&& tiles[itemRow][itemCol-1].getValue() == Tile.WALL){
+        		return true;
+        }
+    	if(tiles[itemRow-1][itemCol].getValue() == Tile.WALL 
+        		&& tiles[itemRow][itemCol+1].getValue() == Tile.WALL
+        		&& tiles[itemRow][itemCol-1].getValue() == Tile.WALL){
+        		return true;
+        }
+    	return false;
+    }
+    
+    //It's a stack based excavation (Random DFS) to generate the maze
     public void recursiveExcavation(int x, int y){
         Stack<Coordinate> visited = new Stack<Coordinate>();
         List<Direction> randomList = null;
@@ -157,7 +277,8 @@ public class Maze {
         }
     }
     
-    public List<Direction> getRandomArray(){
+    //Chooses a random direction to construct the maze in
+    private List<Direction> getRandomArray(){
         List<Direction> list = new ArrayList<Direction>();
         
         list.add(Direction.UP);

@@ -4,6 +4,7 @@
  * associated with it.
  */
 public class Tile {
+	/** Global variables */
     public static final char WALL = '#';
     public static final char EMPTY = '.';
     public static final char START = 's';
@@ -12,13 +13,17 @@ public class Tile {
     public static final char KEY = 'k';
     public static final char DOOR = 'd';
     
+    /** Class variables */
     private char value;
     private int score;
 
+    /** Constructor */
     public Tile(char value, int score) {
         this.value = value;
         this.score = score;
     }
+    
+    /** Getters & Setters */
 
     public char getValue() {
         return value;

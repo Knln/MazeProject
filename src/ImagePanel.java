@@ -13,11 +13,10 @@ import javax.swing.JPanel;
  */
 public class ImagePanel extends JPanel{
 	
-	/**
-	 * Some serial ID
-	 */
+	/** Some serial ID */
 	private static final long serialVersionUID = 3273612744300406780L;
 	
+	/** Class variables */
 	private BufferedImage backgroundImage;	
 	private BufferedImage foregroundImage;
 	private int width;

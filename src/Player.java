@@ -3,6 +3,7 @@
  */
 public class Player {
     
+	/** Class Variables */
     private Coordinate currPos;
     private Coordinate prevPos;
     private Direction lastMove;
@@ -41,20 +42,22 @@ public class Player {
         currPos.setCol(0);
     }
     
-    public Coordinate getCurrPos() {
-        return currPos.clone();
-    }
-    
-    public Coordinate getPrevPos() {
-        return prevPos.clone();
-    }
-    
     /**
      * Check whether the player has collected the key yet
      * @return Whether the player has the key
      */
     public boolean hasKey() {
         return hasKey;
+    }
+
+    /** Getters & Setters */
+    
+    public Coordinate getCurrPos() {
+        return currPos.clone();
+    }
+    
+    public Coordinate getPrevPos() {
+        return prevPos.clone();
     }
     
     public void setHasKey(boolean hasKey) {

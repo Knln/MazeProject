@@ -45,9 +45,10 @@ import javax.swing.border.TitledBorder;
 
 public class UserInterface extends JFrame {
 
+	/** Some serial ID */
     private static final long serialVersionUID = 49875093875647L;
 
-    // Game and UI constants
+    /** Game and UI constants */
     private int ROWS = 10;
     private int COLS = 10;
     private static final int WINDOW_WIDTH = 1220;
@@ -59,10 +60,10 @@ public class UserInterface extends JFrame {
     public static final int MEDIUM = 17;
     public static final int HARD = 25;
 
-    // set difficulty to easy to begin with
+    /** Set difficulty to easy to begin with */
     private int difficulty;
 
-    // Swing globals
+    /** Swing globals */
     private Font baseFont;
     private JPanel parent;
     private JLabel movesLabel;
@@ -73,7 +74,7 @@ public class UserInterface extends JFrame {
     private JButton hintButton;
     private long startTime;
 
-    // Game fields and attributes
+    /** Game fields and attributes */
     private int score;
     private int moves;
     private int resets;
@@ -86,7 +87,9 @@ public class UserInterface extends JFrame {
     private JLabel highScoresLabel;
     private JPanel inventoryPanel;
 
+    /** Constructor */
     public UserInterface() {
+    	// keep track of hint visual so it can be removed
         hintPath = new ArrayList<>();
 
         // set properties of the frame
@@ -119,6 +122,9 @@ public class UserInterface extends JFrame {
         selectStartScreen();
     }
 
+    /** 
+     * Initialize game 
+     * */
     private void initStartScreen() {
         //Pick a splash screen
         ImagePanel holder = new ImagePanel("res/splash_ver1.png", null, 0, 0, false);
@@ -660,6 +666,13 @@ public class UserInterface extends JFrame {
         layout.last(parent);
     }
 
+    /**
+     * Writes a name and high score to the high scores text file.
+     * Name = "Unknown" if it is null.
+     * 
+     * @param name		The name to write to the file. May be null.
+     * @param score		The score to write to the file.
+     */
     private void writeHighScore(String name, int score)  {
         String nameToPrint;
 
@@ -709,6 +722,12 @@ public class UserInterface extends JFrame {
         }
     }
 
+    /**
+     * Reads high scores from the high scores text file and returns them as a String.
+     * 
+     * @param num		The number of high scores to read.
+     * @return			The high scores as a String.
+     */
     private String readHighScores(int num) {
         String fileName = "highscores.txt";
         List<Score> scores = new ArrayList<Score>();
@@ -756,6 +775,11 @@ public class UserInterface extends JFrame {
         return output.toString();
     }
 
+    /**
+     * Resets the timer to 0, and starts it again.
+     * 
+     * @param timerLabel	The label that displays the timer.
+     */
     private void resetTimer(final JLabel timerLabel){
         final Timer timer = new Timer(40, null);
         timer.addActionListener(new ActionListener(){
@@ -1057,7 +1081,11 @@ public class UserInterface extends JFrame {
         }
     }
 
-
+	/**
+	 * Refreshes the grid so that the newest player action can be seen on the screen.
+	 * 
+	 * @param isReset		True if the refresh is due to the reset button being pressed.
+	 */
     private void refreshGrid(boolean isReset) {
         if (isGameActive) {
             // Scale the size based on number of rows and columns
@@ -1109,10 +1137,7 @@ public class UserInterface extends JFrame {
 
             if (isDarknessMode) {
                 //
-                //
                 // lighting
-                //
-                //
                 //
 
                 // create new lit up Tile locations
@@ -1383,6 +1408,9 @@ public class UserInterface extends JFrame {
         }
     }
 
+    /**
+     * Resets relevant variables and calculates a final score.
+     */
     private void finishGame() {
         // reached the finish tile - they are finished
         isGameActive = false;
@@ -1495,6 +1523,14 @@ public class UserInterface extends JFrame {
 
     }
 
+    /**
+     * Obtain the relevant grid icon image for this coordinate in the maze.
+     * 
+     * @param rows		Maze rows.
+     * @param cols		Maze columns.	
+     * @param pos		Current position we are finding the grid icon for.
+     * @return			The name of the icon to use.
+     */
     private String gridIcon(int rows, int cols, Coordinate pos) {
         //load the proper image for a tile
         String icon = null;
@@ -1682,6 +1718,8 @@ public class UserInterface extends JFrame {
         return icon;
     }
 
+    /** Getters & Setters */
+    
     private int getScaledHeight() {
         return WINDOW_HEIGHT / ROWS + 1;
     }
@@ -1689,7 +1727,8 @@ public class UserInterface extends JFrame {
     private int getScaledWidth() {
         return (WINDOW_WIDTH - RIGHT_PANEL_WIDTH) / COLS + 1;
     }
-
+    
+    /** Entry point */
     public static void main(String[] args) {
         // create JFrame and make it visible
         SwingUtilities.invokeLater(new Runnable() {

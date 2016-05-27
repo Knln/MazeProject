@@ -5,27 +5,14 @@
  */
 
 public class Coordinate {
+	
+	/** Class variables */
     private int row;
     private int col;
 
+    /** Constructor */
     public Coordinate(int row, int col) {
         this.row = row;
-        this.col = col;
-    }
-
-    public int getRow() {
-        return row;
-    }
-
-    public void setRow(int row) {
-        this.row = row;
-    }
-
-    public int getCol() {
-        return col;
-    }
-
-    public void setCol(int col) {
         this.col = col;
     }
 
@@ -115,5 +102,23 @@ public class Coordinate {
      */
     public int distanceFrom(Coordinate c) {
         return Math.abs(row - c.getRow()) + Math.abs(col - c.getCol());
+    }
+
+    /** Getters & Setters */
+    
+    public int getRow() {
+        return row;
+    }
+
+    public void setRow(int row) {
+        this.row = row;
+    }
+
+    public int getCol() {
+        return col;
+    }
+
+    public void setCol(int col) {
+        this.col = col;
     }
 }

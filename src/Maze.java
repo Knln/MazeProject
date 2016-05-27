@@ -400,6 +400,8 @@ public class Maze {
         tiles[pos.getRow()][pos.getCol()] = new Tile(Tile.KEY, 50);
     }
     
+    /** Getters & Setters */
+    
     public int getRows() {
         return ROWS;
     }

@@ -76,6 +76,8 @@ public class ImagePanel extends JPanel{
         g2d.dispose();
     }
     
+    /** Getters & Setters */
+    
     public void setForegroundIcon(String foregroundIcon){
     	try {
 			foregroundImage = ImageIO.read(new File(foregroundIcon));

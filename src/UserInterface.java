@@ -63,12 +63,16 @@ public class UserInterface extends JFrame {
     /** Set difficulty to easy to begin with */
     private int difficulty;
 
-    /** Swing globals */
+    /** Swing class variables for easy access */
     private Font baseFont;
     private JPanel parent;
+    private Timer timer;
+    private JLabel timerLabel;
     private JLabel movesLabel;
     private JLabel scoreLabel;
     private JLabel goalLabel;
+    private JLabel highScoresLabel;
+    private JPanel inventoryPanel;
     private JPanel grid;
     private JButton resetButton;
     private JButton hintButton;
@@ -84,8 +88,6 @@ public class UserInterface extends JFrame {
     private Maze maze;
     private List<Coordinate> hintPath;
     private Player player;
-    private JLabel highScoresLabel;
-    private JPanel inventoryPanel;
 
     /** Constructor */
     public UserInterface() {
@@ -96,7 +98,6 @@ public class UserInterface extends JFrame {
         this.setTitle(GAME_NAME);
         this.getContentPane().setPreferredSize(new Dimension(WINDOW_WIDTH, WINDOW_HEIGHT));
         this.pack();
-        //this.setSize(new Dimension(WINDOW_WIDTH, WINDOW_HEIGHT));
         this.setResizable(false);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setLocationRelativeTo(null);
@@ -105,6 +106,7 @@ public class UserInterface extends JFrame {
         parent = new JPanel(new CardLayout());
         this.add(parent);
 
+        // initialise some fonts
         baseFont = new Font(Font.SANS_SERIF, Font.PLAIN, 17);
         UIManager.put("OptionPane.messageFont", baseFont);
         UIManager.put("OptionPane.buttonFont", baseFont);
@@ -123,10 +125,10 @@ public class UserInterface extends JFrame {
     }
 
     /** 
-     * Initialize game 
+     * Initialise the main menu screen
      * */
     private void initStartScreen() {
-        //Pick a splash screen
+        // pick a splash, any splash (not the bottom one)
         ImagePanel holder = new ImagePanel("res/splash_ver1.png", null, 0, 0, false);
         //ImagePanel holder = new ImagePanel("res/splash_ver2.png", null, 0, 0, false);
         holder.setLayout(new BoxLayout(holder, BoxLayout.Y_AXIS));
@@ -277,7 +279,7 @@ public class UserInterface extends JFrame {
     }
 
     /**
-     * Initialise this user interface (JFrame)
+     * Initialise the game screen (showing the maze and controls)
      */
     private void initMazeScreen() {
         JPanel holder = new JPanel();
@@ -286,7 +288,6 @@ public class UserInterface extends JFrame {
 
         // 1) on the left - a grid to hold the maze
         grid = new JPanel();
-        //grid.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
         grid.setLayout(new GridLayout(ROWS, COLS));
 
         populateGrid();
@@ -337,11 +338,11 @@ public class UserInterface extends JFrame {
         infoPanel.setAlignmentX(CENTER_ALIGNMENT);
         infoPanel.add(Box.createHorizontalGlue());
 
-        final JLabel timerLabel = new JLabel();
+        timerLabel = new JLabel("Time: 0:00.000");
         timerLabel.setFont(baseFont);
         infoPanel.add(timerLabel);
         infoPanel.add(Box.createVerticalStrut(6));
-        resetTimer(timerLabel);
+        //resetTimer(timerLabel);
 
         movesLabel = new JLabel("Steps: " + moves);
         movesLabel.setFont(baseFont);
@@ -397,7 +398,7 @@ public class UserInterface extends JFrame {
                 moves = 0;
 
                 refreshGrid(true);
-                resetTimer(timerLabel);
+                resetTimer();
 
                 // clear their inventory too
                 inventoryPanel.removeAll();
@@ -511,7 +512,6 @@ public class UserInterface extends JFrame {
                 COLS = difficulty;
                 isDarknessMode = checkDark.isSelected();
                 populateGrid();
-                resetTimer(timerLabel);
             }
         });
         newGamePanel.add(button);
@@ -559,6 +559,27 @@ public class UserInterface extends JFrame {
 
         holder.add(rhs);
         parent.add(holder);
+        
+        // also initialise the maze timer
+        timer = new Timer(40, null);
+        timer.addActionListener(new ActionListener(){
+            public void actionPerformed(ActionEvent e){
+                timeElapsed = (int)(System.currentTimeMillis() - startTime);
+
+                // update in the UI thread
+                SwingUtilities.invokeLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        int ms = timeElapsed % 1000;
+                        int seconds = (timeElapsed / 1000) % 60;
+                        int minutes = timeElapsed / 1000 / 60;
+                        timerLabel.setText("Time: "
+                                + String.format("%d:%02d.%03d", minutes, seconds, ms));
+                    }
+                });
+            }
+        });
+        timer.setInitialDelay(0);
     }
 
     /**
@@ -656,11 +677,17 @@ public class UserInterface extends JFrame {
         hintPath.clear();
     }
 
+    /**
+     * Sets the menu screen ("start screen") to be displayed
+     */
     private void selectStartScreen() {
         CardLayout layout = (CardLayout) parent.getLayout();
         layout.first(parent);
     }
 
+    /**
+     * Sets the maze screen to be displayed
+     */
     private void selectMazeScreen() {
         CardLayout layout = (CardLayout) parent.getLayout();
         layout.last(parent);
@@ -757,7 +784,7 @@ public class UserInterface extends JFrame {
         Collections.sort(scores);
 
         // format scores into html so they can be displayed in a JLabel
-        // shitty HTML table to display scores
+        // shitty HTML table to display scores (pls don't hurt me)
         StringBuilder output = new StringBuilder();
         output.append("<html><table cellpadding='1' cellspacing='0'>");
         
@@ -778,32 +805,9 @@ public class UserInterface extends JFrame {
     /**
      * Resets the timer to 0, and starts it again.
      * 
-     * @param timerLabel	The label that displays the timer.
      */
-    private void resetTimer(final JLabel timerLabel){
-        final Timer timer = new Timer(40, null);
-        timer.addActionListener(new ActionListener(){
-            public void actionPerformed(ActionEvent e){
-                timeElapsed = (int)(System.currentTimeMillis() - startTime);
-
-                // update in the UI thread
-                SwingUtilities.invokeLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        int ms = timeElapsed % 1000;
-                        int seconds = (timeElapsed / 1000) % 60;
-                        int minutes = timeElapsed / 1000 / 60;
-                        timerLabel.setText("Time: "
-                                + String.format("%d:%02d.%03d", minutes, seconds, ms));
-                    }
-                });
-
-                if (!isGameActive) {
-                    timer.stop();
-                }
-            }
-        });
-        timer.setInitialDelay(0);
+    private void resetTimer(){
+        timeElapsed = 0;
         startTime = System.currentTimeMillis();
         timer.start();
     }
@@ -847,6 +851,11 @@ public class UserInterface extends JFrame {
                         player.move(d);
                         moves++;
                         refreshGrid(false);
+                        
+                        // start the timer if it hasn't been started yet
+                        if (timeElapsed == 0) {
+                            resetTimer();
+                        }
                     }
                 }
             }
@@ -907,6 +916,12 @@ public class UserInterface extends JFrame {
         moves = 0;
         resets = 0;
         timeElapsed = 0;
+        if (timer != null) {
+            timer.stop();
+        }
+        if (timerLabel != null) {
+            timerLabel.setText("Time: 0:00.000");
+        }
 
         // clear the inventory
         if (inventoryPanel != null) {
@@ -951,10 +966,10 @@ public class UserInterface extends JFrame {
                     int scaledWidth = getScaledWidth();
                     int scaledHeight = getScaledHeight();
 
-                    //isPlayer is initialized to false
+                    // isPlayer is initialized to false
                     boolean isForegroundVisible = false;
 
-                    //initialize foregroundIcon
+                    // initialize foregroundIcon
                     String foregroundIcon = null;
 
                     // check the Tile and set visibility and foregroundIcon
@@ -980,7 +995,7 @@ public class UserInterface extends JFrame {
                         }
                     }
 
-                    //add imagePanel to grid
+                    // add imagePanel to grid
                     ImagePanel label2 = new ImagePanel(icon, foregroundIcon,
                             scaledHeight, scaledWidth, isForegroundVisible);
                     label2.setOpaque(true);
@@ -1041,11 +1056,10 @@ public class UserInterface extends JFrame {
             // get the correct image for a tile
             String icon = gridIcon(ROWS, COLS, coordinate);
 
-
-            //isPlayer is initialized to false
+            // isPlayer is initialized to false
             boolean isForegroundVisible = false;
 
-            //initialize foregroundIcon
+            // initialize foregroundIcon
             String foregroundIcon = null;
 
             // check the Tile and set visibility and foregroundIcon
@@ -1071,7 +1085,7 @@ public class UserInterface extends JFrame {
                 }
             }
 
-            //add imagePanel to grid
+            // add imagePanel to grid
             ImagePanel label2 = new ImagePanel(icon, foregroundIcon,
                     scaledHeight, scaledWidth, isForegroundVisible);
             label2.setOpaque(true);
@@ -1414,6 +1428,7 @@ public class UserInterface extends JFrame {
     private void finishGame() {
         // reached the finish tile - they are finished
         isGameActive = false;
+        timer.stop();
 
         resetButton.setEnabled(false);
         hintButton.setEnabled(false);
@@ -1730,7 +1745,7 @@ public class UserInterface extends JFrame {
     
     /** Entry point */
     public static void main(String[] args) {
-        // create JFrame and make it visible
+        // create JFrame and make it --great again-- visible
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
                 UserInterface ui = new UserInterface();
